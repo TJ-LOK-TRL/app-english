@@ -1,0 +1,18 @@
+cd /opt/kaldi/src
+make depend
+
+make folders:
+    base matrix util fstext lat tree gmm decoder transform lm feat
+    online2 ivector nnet3 chain nnet2 cudamatrix
+make binaries (cd first):
+    bin/compute-gop
+    bin/ali-to-phones
+    bin/compile-train-graphs
+    bin/compile-train-graphs-without-lexicon
+    bin/align-compiled-mapped
+    featbin/compute-mfcc-feats
+    featbin/copy-feats
+    featbin/apply-cmvn
+    nnet3bin/nnet3-compute
+    nnet3bin/nnet3-align-compiled
+    online2bin/ivector-extract-online2

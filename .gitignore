@@ -1,0 +1,65 @@
+# ===== BACKEND (Python) =====
+backend/**/__pycache__/
+backend/**/*.py[cod]
+backend/venv/
+backend/.venv/
+backend/.env
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/.coverage
+backend/*.log
+backend/.vscode/
+backend/.idea/
+backend/dist/
+backend/build/
+backend/*.egg-info/
+backend/.eggs/
+backend/.tox/
+backend/.hypothesis/
+backend/.pytest_cache/
+
+# ===== FRONTEND (Kotlin/Android) =====
+frontend/app/build/
+frontend/app/.gradle/
+frontend/app/out/
+frontend/app/intermediates/
+frontend/app/generated/
+frontend/app/.idea/
+frontend/.gradle/
+frontend/.idea/
+frontend/local.properties
+frontend/app/src/main/assets/models/*.bin
+
+# ===== NODE / JS (caso exista frontend web híbrido) =====
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# ===== COMMON =====
+*.log
+*.tmp
+*.swp
+*.bak
+*.swo
+*.old
+*.orig
+*.lock
+.DS_Store
+Thumbs.db
+
+# ===== VENV genéricos =====
+venv/
+.env/
+.envrc
+
+# ===== SYSTEM / IDE =====
+.idea/
+.vscode/
+*.iml
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+out/

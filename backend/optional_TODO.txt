@@ -1,0 +1,1 @@
+TODO: create_file in both local/texto-phone and run.sh, so it should be fixed

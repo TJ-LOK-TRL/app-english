@@ -1,0 +1,56 @@
+# pip install uvicorn fastapi openai-whisper kokoro soundfile diskcache
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    g++ \
+    make \
+    cmake \
+    git \
+    wget \
+    curl \
+    sox \
+    libsox-fmt-all \
+    automake \
+    autoconf \
+    libtool \
+    zlib1g-dev \
+    subversion \
+    patchelf \
+    gfortran \
+    bzip2 \
+    unzip \
+    python3 \
+    python3-venv \
+    python3-dev \
+    python3-pip \
+    nano \
+    python2.7 \
+    && rm -rf /var/lib/apt/lists/*
+    
+#RUN apt update
+#RUN apt install python3-pip -y
+#RUN pip install seaborn
+#RUN pip install scikit-learn
+#RUN pip install imbalanced-learn
+#RUN pip install kaldi_io
+
+# Download and compile kaldi
+WORKDIR /opt
+RUN git clone https://github.com/kaldi-asr/kaldi.git
+WORKDIR /opt/kaldi
+RUN mkdir -p tools/python
+WORKDIR tools
+#RUN make -j 4
+#RUN extras/install_openblas.sh
+#WORKDIR ../src
+## Use OpenBLAS for better performance on amd64, MKL can be used for intel CPUs
+#RUN ./configure --shared --mathlib=OPENBLAS --openblas-root=../tools/OpenBLAS/install
+#RUN make depend -j 4
+#RUN make -j 4
+
+# link openfst-1.8.4 to openfst
