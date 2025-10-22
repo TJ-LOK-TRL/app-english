@@ -2,3 +2,7 @@ du -h --max-depth=1 /opt/kaldi/ | sort -hr
 find /opt/kaldi/src/ -name "*.o" -exec du -ch {} + | grep total
 find /opt/kaldi/src/ -type f -name ivector-extract-online2.cc
 uvicorn main:app --host 0.0.0.0 --port 8080 --reload
+
+curl -X POST "http://localhost:8080/api/speech/evaluate-pronunciation" \
+  -F "audio=@WAVE/usr_audo_test.wav" \
+  -F "target_text=$(cat text)"

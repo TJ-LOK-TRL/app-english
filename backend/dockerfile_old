@@ -1,5 +1,3 @@
-# pip install uvicorn fastapi openai-whisper kokoro soundfile diskcache
-
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
