@@ -1,4 +1,4 @@
-package com.masterproject.englishapp
+package com.masterproject.englishapp.screens
 
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -38,6 +38,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.masterproject.englishapp.BakingViewModel
+import com.masterproject.englishapp.R
+import com.masterproject.englishapp.UiState
 
 val images = arrayOf(
     // Image generated using Gemini from the prompt "cupcake image"

@@ -1,74 +1,67 @@
+// MainActivity.kt
 package com.masterproject.englishapp
 
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.masterproject.englishapp.recorder.AndroidAudioRecorder
-import com.masterproject.englishapp.AudioRecorderScreen
+import com.masterproject.englishapp.screens.MainLandingPage
 import com.masterproject.englishapp.ui.theme.MyApplicationTheme
-import com.whispercpp.whisper.WhisperContext
-import kotlinx.coroutines.launch
-import java.io.File
 
+/**
+ * MainActivity - Entry point of the English Learning Application
+ */
 class MainActivity : ComponentActivity() {
 
+    // Initialize recorder here - it's the app-level dependency
     private val recorder by lazy {
         AndroidAudioRecorder(applicationContext)
     }
 
+    private var isAudioPermissionGranted = false
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
+        isAudioPermissionGranted = isGranted
         if (isGranted) {
-            // Permission granted. Recording can proceed.
-            // The Compose state will be updated accordingly.
+            // Permission granted - recorder is ready to use
         } else {
-            // Permission denied. Inform the user.
-            // TODO: Replace this simple Toast with a more robust UI explanation
-            // using a Snackbar or a Dialog in a real application.
-            // 'context' needs to be available in this scope, e.g., passed to the function or available via an Application/Activity context.
-            Toast.makeText(this, "Permission denied. Cannot proceed without permission.", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Audio recording permission is required for voice features.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Verifica e solicita a permissão de gravação se necessário
-        val isPermissionGranted = ContextCompat.checkSelfPermission(
+        // Check audio permission status
+        isAudioPermissionGranted = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.RECORD_AUDIO
         ) == PackageManager.PERMISSION_GRANTED
 
-        if (!isPermissionGranted) {
+        // Request permission if not granted
+        if (!isAudioPermissionGranted) {
             requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
 
+        // Set up Compose UI
         setContent {
             MyApplicationTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    //BakingScreen()
-                    AudioRecorderScreen(
-                        isPermissionGranted = isPermissionGranted,
-                        recorder = recorder
-                    )
-                }
+                // Navigate to MainLandingPage instead of AudioRecorderScreen
+                MainLandingPage(
+                    isPermissionGranted = isAudioPermissionGranted,
+                    recorder = recorder
+                )
             }
         }
     }

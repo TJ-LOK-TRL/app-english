@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.masterproject.englishapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         //ndk {
@@ -18,9 +18,11 @@ android {
 
         applicationId = "com.masterproject.englishapp"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "API_KEY", "\"empty key for now\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -64,6 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.generativeai)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

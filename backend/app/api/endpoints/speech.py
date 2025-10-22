@@ -3,7 +3,7 @@ import traceback
 import numpy as np
 import soundfile as sf
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from services.pronunciation_evaluator import PronunciationEvaluator
+from backend.app.services.pronunciation.pronunciation_evaluator import PronunciationEvaluator
 
 router = APIRouter()
 pronunciation_evaluator = PronunciationEvaluator()

@@ -1,25 +1,17 @@
 // BakingScreen.kt
-package com.masterproject.englishapp
+package com.masterproject.englishapp.screens
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.masterproject.englishapp.audio.encodeWaveToBytes
-import com.masterproject.englishapp.network.ApiService
 import com.masterproject.englishapp.network.RetrofitClient
 import com.masterproject.englishapp.recorder.AudioRecorder
-import com.whispercpp.whisper.WhisperContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
