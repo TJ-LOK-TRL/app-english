@@ -74,8 +74,6 @@ class PronunciationEvaluator:
         ref_audio = prepare_for_whisper(ref_audio, sr)
                     
         scores = self.pronunciation_service.run_pipeline(tts_cache_key.to_cache_key(), target_text, ref_audio, usr_audio)
-
-        
         
         # TODO
         return {

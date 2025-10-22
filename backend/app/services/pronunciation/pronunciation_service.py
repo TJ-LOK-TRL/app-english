@@ -13,9 +13,9 @@ class PronunciationService:
         self.ksi = KaldiShellInterface()
 
     def run_pipeline(self, id: str, text: str, ref_wav: np.ndarray, usr_wav: np.ndarray) -> List[Tuple[str, float]]:
-        input_dir = id
+        input_dir = os.path.join(self.data_home, id)
         
-        usr_input_dir = os.path.join(self.data_home, get_next_subdir(input_dir, 'usr_'))
+        usr_input_dir = get_next_subdir(input_dir, 'usr_')
         tmp_dir = os.path.join(self.data_home, create_tmp_dir(prefix=f'user_{id}'))
         text_file = os.path.join(tmp_dir, 'text.txt')
         usr_wav_file = os.path.join(tmp_dir, 'usr_wav.wav')
@@ -31,6 +31,7 @@ class PronunciationService:
             self.ksi.generate_reference_phones(text_file, ref_wav_file, input_dir)
             ref_phones = os.path.join(input_dir, 'text-phone')
             
+            print('yyy:', ref_phones)
             result = self.ksi.run_evaluator(text_file, usr_wav_file, ref_phones, usr_input_dir)
             print('Raw GOP result:', result)
             
