@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from typing import Dict, Any
+from typing import List, Tuple, Dict, Any, Literal
 from core.enums.lang import Lang
 from services.tts.kokoro import KokoroTTSService, KokoroVoice
 from services.tts.cache import TTSCacheService, TTSCacheKey
@@ -75,8 +75,43 @@ class PronunciationEvaluator:
                     
         scores = self.pronunciation_service.run_pipeline(tts_cache_key.to_cache_key(), target_text, ref_audio, usr_audio)
         
-        # TODO
+        results: List[List[Tuple[str, float]]] = self.evaluate_pronunciation_per_word(scores)
+        print('Final result:', results)
         return {
-            'score': 0.0,
+            'results': results
         }
         
+    def evaluate_pronunciation_per_word(
+        self,
+        aligned: List[List[Tuple[str, float]]]
+    ) -> List[Dict[str, Any]]:
+        """
+        For each word (list of phonemes with scores), compute:
+        - word text (as string of phonemes)
+        - average score
+        - label (passed / average / failed)
+        """
+        results = []
+        for word in aligned:
+            phonemes = [ph for ph, _ in word]
+            scores = [score for _, score in word]
+            avg_score = sum(scores) / len(scores) if scores else 0.0
+            label = self.score_to_label(avg_score)
+            results.append({
+                'phonemes': phonemes,
+                'score': round(avg_score, 4),
+                'label': label
+            })
+        return results
+    
+    def score_to_label(self, score: float) -> Literal['passed', 'average', 'failed']:
+        """
+        Maps a score to a qualitative label.
+        You can tweak the thresholds as needed.
+        """
+        if score >= -0.3:
+            return 'passed'
+        elif score >= -0.7:
+            return 'average'
+        else:
+            return 'failed'

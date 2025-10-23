@@ -18,13 +18,17 @@ interface ApiService {
 }
 
 data class PronunciationResult(
+    val results: List<WordResult>
+)
+
+data class WordResult(
+    val phonemes: List<String>,
     val score: Float,
-    val transcript: String,
-    val feedback: String
+    val label: String
 )
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.1.232:8000"
+    private const val BASE_URL = "http://192.168.1.246:8080"
 
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)   // connection timeout

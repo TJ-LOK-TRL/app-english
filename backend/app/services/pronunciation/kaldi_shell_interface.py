@@ -38,7 +38,16 @@ class KaldiShellInterface:
             [text_file, wav_file, text_phone, input_dir]
         )
 
-    def format_result(self, gop_result: str) -> Tuple[str, List[Tuple[str, float]]]:
+    def format_result(self, gop_result_raw: str, ref_phones_raw: str) -> List[List[Tuple[str, float]]]:
+        _, gop_result = self.format_gop_result(gop_result_raw)
+        ref_phones = self.format_phonemes(ref_phones_raw)
+
+        print(gop_result)
+        print(ref_phones)
+
+        return self.align_phonemes_with_scores(gop_result, ref_phones)
+
+    def format_gop_result(self, gop_result: str) -> Tuple[str, List[Tuple[str, float]]]:
         """Processes GOP (Goodness of Pronunciation) data from Kaldi files and returns results as a list."""
         
         phones_file = os.path.join(self.data_home, 'lang_nosp/phones-pure.txt')
@@ -64,5 +73,63 @@ class KaldiShellInterface:
             gop_list.append((phone_map.get(idx, f'UNK{idx}'), float(gop)))
         
         return (utt, gop_list)
+    
+    def format_phonemes(self, data: str) -> List[Tuple[str]]:
+        """
+        Extracts phonemes - each line is a word
+        """
+        words = []
+        
+        lines = data.strip().split('\n')
+        
+        for line in lines:
+            parts = line.split()
+            # Remove the first element (utt1.0, utt1.1, etc)
+            phonemes = parts[1:]
+            words.append(tuple(self.clear_phones(phonemes)))
+        
+        return words
+    
+    def clear_phones(self, phonemes: List[str]) -> List[str]:
+        """
+        Removes suffixes (_B, _I, _E, _S) and digits from phonemes like 'AH0' → 'AH'
+        """
+        cleaned = []
+        for phone in phonemes:
+            # Remove suffixes like _B, _I, _E, _S
+            phone = re.sub(r'_[BIES]$', '', phone)
+            # Remove digits (like 0, 1, 2) from the phoneme (e.g., AH0 → AH)
+            phone = re.sub(r'\d', '', phone)
+            cleaned.append(phone)
+        return cleaned
+
+    def align_phonemes_with_scores(
+        self,
+        scored_phones: List[Tuple[str, float]],
+        segmented_words: List[Tuple[str]]
+    ) -> List[List[Tuple[str, float]]]:
+        """
+        Aligns scored phonemes with their corresponding word segments.
+        """
+        aligned = []
+        index = 0
+
+        for word in segmented_words:
+            word_alignment = []
+            for phoneme in word:
+                if index >= len(scored_phones):
+                    raise ValueError('Mismatch between scored phonemes and segments.')
+                scored_phoneme, score = scored_phones[index]
+                if scored_phoneme != phoneme:
+                    raise ValueError(
+                        f'Phoneme mismatch at index {index}: expected \'{phoneme}\', got \'{scored_phoneme}\''
+                    )
+                word_alignment.append((scored_phoneme, score))
+                index += 1
+            aligned.append(word_alignment)
+
+        return aligned
+
+
         
          

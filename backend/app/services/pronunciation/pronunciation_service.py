@@ -12,11 +12,20 @@ class PronunciationService:
         
         self.ksi = KaldiShellInterface()
 
-    def run_pipeline(self, id: str, text: str, ref_wav: np.ndarray, usr_wav: np.ndarray) -> List[Tuple[str, float]]:
+    def run_pipeline(
+        self, 
+        id: str, 
+        text: str, 
+        ref_wav: np.ndarray, 
+        usr_wav: np.ndarray
+    ) -> List[Tuple[str, float]]:
         input_dir = os.path.join(self.data_home, id)
         
+        ref_input_dir = get_next_subdir(input_dir, 'ref_')
         usr_input_dir = get_next_subdir(input_dir, 'usr_')
+
         tmp_dir = os.path.join(self.data_home, create_tmp_dir(prefix=f'user_{id}'))
+
         text_file = os.path.join(tmp_dir, 'text.txt')
         usr_wav_file = os.path.join(tmp_dir, 'usr_wav.wav')
         ref_wav_file = os.path.join(tmp_dir, 'ref_wav.wav')
@@ -28,20 +37,20 @@ class PronunciationService:
             sf.write(usr_wav_file, usr_wav, 16000)
             sf.write(ref_wav_file, ref_wav, 24000)
 
-            self.ksi.generate_reference_phones(text_file, ref_wav_file, input_dir)
-            ref_phones = os.path.join(input_dir, 'text-phone')
+            self.ksi.generate_reference_phones(text_file, ref_wav_file, ref_input_dir)
+            ref_phones_file = os.path.join(ref_input_dir, 'text-phone')
             
-            print('yyy:', ref_phones)
-            result = self.ksi.run_evaluator(text_file, usr_wav_file, ref_phones, usr_input_dir)
-            print('Raw GOP result:', result)
+            gop_result_raw = self.ksi.run_evaluator(text_file, usr_wav_file, ref_phones_file, usr_input_dir)
+            print('Raw GOP result:', gop_result_raw)
             
-            _, scores = self.ksi.format_result(result)
+            with open(ref_phones_file, 'rt') as file:
+                ref_phones_raw = file.read()
+                scores = self.ksi.format_result(gop_result_raw, ref_phones_raw)
+
             print('Scores:', scores)
-            
             return scores
         finally:
             remove_dir(tmp_dir)
-
 
     
     

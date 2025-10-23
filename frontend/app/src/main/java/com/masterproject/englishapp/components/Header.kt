@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -24,8 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.masterproject.englishapp.R
 
 /**
  * CommonHeader - Reusable header component with back button and bottom shadow
@@ -68,7 +68,7 @@ fun CommonHeader(
                         modifier = Modifier.padding(start = 4.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                            painter = painterResource(R.drawable.arrow_back),
                             contentDescription = "Back",
                             tint = contentColor
                         )
@@ -143,7 +143,7 @@ fun CommonHeaderWithContent(
                     modifier = Modifier.padding(end = 16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        painter = painterResource(id = R.drawable.mic),
                         contentDescription = "Back",
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
