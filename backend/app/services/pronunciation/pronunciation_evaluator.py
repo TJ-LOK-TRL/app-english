@@ -1,8 +1,8 @@
-import torch
 import numpy as np
 from typing import List, Tuple, Dict, Any, Literal
 from core.enums.lang import Lang
-from services.tts.kokoro import KokoroTTSService, KokoroVoice
+from core.interfaces.itts_service import ITTSService
+from services.tts.kokoro import KokoroVoice
 from services.tts.cache import TTSCacheService, TTSCacheKey
 from services.pronunciation.pronunciation_service import PronunciationService
 
@@ -38,11 +38,8 @@ def prepare_for_whisper(audio: np.ndarray, sr: int) -> np.ndarray:
 class PronunciationEvaluator:
     """Orchestrates pronunciation evaluation using multiple services"""
     
-    def __init__(self) -> None:
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        print('Using:', device)
-        
-        self._tts_service = KokoroTTSService(device)
+    def __init__(self, tts_service: ITTSService) -> None:        
+        self._tts_service = tts_service
         self._tts_cache = TTSCacheService()
         
         self.pronunciation_service = PronunciationService()
