@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="icon" href="data:,">
+
+    <title>HeadTTS - TalkingHead Demo</title>
+
+    <style>
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            background-color: #202020;
+            color: white;
+            overflow: hidden;
+        }
+
+        #avatar {
+            display: block;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            padding: 0;
+        }
+
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            max-height: Calc(100% - 40px);
+        }
+
+        #text {
+            display: block;
+            flex: 1 1;
+            max-width: 500px;
+            min-width: min(Calc(100vw - 40px), 300px);
+            height: 30px;
+            font-family: Arial;
+            font-size: 20px;
+            padding-left: 10px;
+        }
+
+        #person {
+            display: block;
+            appearance: none;
+            width: 85px;
+            height: 36px;
+            font-family: Arial;
+            font-size: 20px;
+            text-align-last: center;
+        }
+
+        #speak {
+            display: block;
+            box-sizing: content-box;
+            height: 30px;
+            width: 70px;
+            font-family: Arial;
+            font-size: 20px;
+        }
+
+        #info {
+            display: block;
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            font-family: Arial;
+            font-size: 20px;
+        }
+
+        #subtitles {
+            position: absolute;
+            bottom: 6vh;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: Arial;
+            font-size: max(min(5vh, 5vw), 24px);
+            line-height: max(min(6vh, 6vh), 20px);
+            z-index: 30;
+            height: Calc(2 * max(min(6vh, 6vh), 20px));
+            max-height: Calc(2 * max(min(6vh, 6vh), 20px));
+            width: 80%;
+            text-align: center;
+            overflow: hidden;
+        }
+    </style>
+
+    <script type="importmap">
+        { "imports":
+            {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js/+esm",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+            "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.5/modules/talkinghead.mjs",
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { TalkingHead } from "talkinghead";
+
+        // Globals
+        let head; // TalkingHead instance
+        const el = {}; // DOM elements based in `id` property
+
+        // Avatars
+        const persons = {
+            "julia": {
+                avatar: {
+                    url: "./avatars/julia.glb",
+                    body: "F",
+                    avatarMood: "neutral"
+                },
+                view: {
+                    cameraY: 0
+                },
+                setup: {
+                    voice: "af_bella",
+                    language: "en-us",
+                    speed: 1,
+                    audioEncoding: "wav"
+                }
+            },
+
+            "david": {
+                avatar: {
+                    url: "./avatars/david.glb",
+                    body: "M",
+                    avatarMood: "neutral"
+                },
+                view: {
+                    cameraY: -0.04 // David is taller, so compensate
+                },
+                setup: {
+                    voice: "am_fenrir",
+                    language: "en-us",
+                    speed: 1,
+                    audioEncoding: "wav"
+                }
+            }
+        };
+
+        /**
+        * Load the currently selected avatar and voice.
+        */
+        async function loadPerson() {
+            // Selected person
+            const person = persons["julia"];
+
+
+            // Progress info
+            const info = { head: "-", headtts: "-" };
+            const updateInfo = (name, ev) => {
+                if (ev) {
+                    if (ev.lengthComputable) {
+                        info[name] = Math.min(100, Math.round(ev.loaded / ev.total * 100)) + "%";
+                    } else {
+                        info[name] = Math.round(ev.loaded / 1000) + "KB";
+                    }
+                }
+                let s = "Loading: " + info.head + " / " + info.headtts;
+                if (info.hasOwnProperty("error")) {
+                    s += " ERROR:<br>&gt; " + info.error.replaceAll("\n", "<br>&gt; ");
+                }
+                el.info.innerHTML = s;
+            }
+
+            // Load and show the avatar
+            try {
+                el.speak.disabled = true;
+                el.info.style.display = 'block';
+                el.info.textContent = "Loading...";
+
+                await head.showAvatar(person.avatar, updateInfo.bind(null, "head"));
+
+                // Setup view
+                head.setView(head.viewName, person.view);
+                head.cameraClock = 999; // Hack to prevent smooth transition
+
+                el.info.style.display = 'none';
+                el.speak.disabled = false;
+            } catch (error) {
+                console.log(error);
+                info.error = error.message?.slice() || "Unknown error.";
+                updateInfo();
+            }
+        }
+
+        async function synthesizeText(text) {
+            const formData = new FormData();
+            formData.append("text", text);
+
+            const response = await fetch("http://192.168.1.232:8080/api/speech/kokoro/synthesize", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+            const tokens = result.tokens;
+            const predDur = result.pred_dur; // array de inteiros, duração em frames
+            const audioBinary = Uint8Array.from(atob(result.audio), c => c.charCodeAt(0)).buffer;
+            const audio = await head.audioCtx.decodeAudioData(audioBinary);
+
+            const misakiToOculusViseme = {
+                "$": null, ";": null, ":": null, ",": null, ".": null, "!": null, "?": null,
+                "—": null, "…": null, "\"": null, "(": null, ")": null, "“": null, "”": null,
+                " ": null, "\u0303": null, "ʣ": "DD", "ʥ": "CH", "ʦ": "CH", "ʨ": "CH",
+                "ᵝ": null, "ꭧ": null, "A": "E", "I": "I", "O": "O", "Q": "O", "S": "SS",
+                "T": "DD", "W": "U", "Y": "I", "ᵊ": null, "a": "aa", "b": "PP", "c": "kk",
+                "d": "DD", "e": "E", "f": "FF", "h": null, "i": "I", "j": "I", "k": "kk",
+                "l": "RR", "m": "PP", "n": "nn", "o": "O", "p": "PP", "q": "kk", "r": "RR",
+                "s": "SS", "t": "DD", "u": "U", "v": "FF", "w": "U", "x": "SS", "y": "I",
+                "z": "SS", "ɑ": "aa", "ɐ": "aa", "ɒ": "aa", "æ": "aa", "β": "FF", "ɔ": "O",
+                "ɕ": "SS", "ç": "SS", "ɖ": "DD", "ð": "TH", "ʤ": "CH", "ə": "E", "ɚ": "RR",
+                "ɛ": "E", "ɜ": "E", "ɟ": "DD", "ɡ": "kk", "ɥ": "U", "ɨ": "I", "ɪ": "I",
+                "ʝ": "I", "ɯ": "U", "ɰ": "U", "ŋ": "nn", "ɳ": "nn", "ɲ": "nn", "ɴ": "nn",
+                "ø": "O", "ɸ": "FF", "θ": "TH", "œ": "E", "ɹ": "RR", "ɾ": "DD", "ɻ": "RR",
+                "ʁ": "RR", "ɽ": "RR", "ʂ": "SS", "ʃ": "SS", "ʈ": "DD", "ʧ": "CH",
+                "ʊ": "U", "ʋ": "FF", "ʌ": "aa", "ɣ": null, "ɤ": "O", "χ": null, "ʎ": "RR",
+                "ʒ": "SS", "ʔ": null, "ˈ": null, "ˌ": null, "ː": null, "ʰ": null, "ʲ": null,
+                "↓": null, "→": null, "↗": null, "↘": null, "ᵻ": "I"
+            };
+
+            // ----------------------------
+            // ⏱️ Calcular tempos a partir de pred_dur
+            // ----------------------------
+            const frameToMs = f => Math.round(f * 1000 / 24); // Kokoro: 24 frames/ms aprox
+            let predIndex = 1; // ignorar <bos>
+            const visemes = [];
+            const vtimes = [];
+            const vdurations = [];
+
+            for (const token of tokens) {
+                if (!token.phonemes || token.phonemes.length === 0) {
+                    if (token.whitespace) predIndex++; // espaço
+                    continue;
+                }
+
+                const phs = Array.from(token.phonemes); // separar string em chars
+                for (let i = 0; i < phs.length; i++) {
+                    const ph = phs[i];
+                    const durFrames = predDur[predIndex] ?? 0;
+                    const durMs = frameToMs(durFrames);
+                    const startMs = vtimes.length > 0 ? vtimes[vtimes.length - 1] + vdurations[vdurations.length - 1] : frameToMs(predIndex > 0 ? predDur[predIndex - 1] : 0);
+
+                    const mapped = misakiToOculusViseme[ph] ?? null;
+                    if (mapped) {
+                        visemes.push(mapped);
+                        vtimes.push(startMs);
+                        vdurations.push(durMs);
+                    }
+
+                    predIndex++;
+                }
+
+                if (token.whitespace) predIndex++;
+            }
+
+            // ----------------------------
+            // 📝 Palavras e tempos
+            // ----------------------------
+            const words = tokens.filter(t => t.text && t.text.trim() && !t.text.includes('<')).map(t => t.text);
+            const wtimes = tokens.filter(t => t.text && t.text.trim() && !t.text.includes('<')).map(t => frameToMs(t.start_ts * 24)); // start_ts * frames
+            const wdurations = tokens.filter(t => t.text && t.text.trim() && !t.text.includes('<')).map(t => frameToMs((t.end_ts - t.start_ts) * 24));
+
+
+            // tempo final atual dos visemes
+            const lastVEnd = vtimes[vtimes.length - 1] + vdurations[vdurations.length - 1];
+            // total real do áudio em milissegundos (a partir do AudioBuffer)
+            const audioDurationMs = audio.duration * 1000;
+            // se o último viseme vai além do áudio, ajusta tudo proporcionalmente
+            if (lastVEnd > audioDurationMs) {
+                const scale = audioDurationMs / lastVEnd;
+                for (let i = 0; i < vtimes.length; i++) {
+                    vtimes[i] = Math.round(vtimes[i] * scale);
+                    vdurations[i] = Math.round(vdurations[i] * scale);
+                }
+            }
+
+            // ----------------------------
+            // Montar JSON final
+            // ----------------------------
+            const data = {
+                words,
+                wtimes,
+                wdurations,
+                visemes,
+                vtimes,
+                vdurations,
+                audio,
+                audioEncoding: "wav"
+            };
+
+            console.log("data:", data)
+
+            return { data, ref: 1, type: "audio" };
+        }
+
+        // WEB PAGE LOADED
+        document.addEventListener('DOMContentLoaded', async function (e) {
+            // Get all DOM elements with an `id`
+            document.querySelectorAll('[id]').forEach(x => el[x.id] = x);
+
+            // Instantiate the TalkingHead class
+            head = new TalkingHead(el.avatar, {
+                ttsEndpoint: "N/A",
+                lipsyncModules: [],
+                cameraView: "upper",
+                mixerGainSpeech: 3,
+                cameraRotateEnable: false
+            });
+
+            // Load the currently chosen person
+            await loadPerson();
+
+            // Speak when clicked
+            el.speak.addEventListener('click', async function () {
+                let text = document.getElementById('text').value;
+                if (text) {
+                    let message = await synthesizeText(text);
+                    head.speakAudio(message.data, null, null);
+                }
+            });
+        })
+    </script>
+</head>
+
+<body>
+    <div id="avatar"></div>
+    <div id="controls">
+        <input id="text" type="text" placeholder="Text" value="This is an example of how to speak english.">
+        <input id="speak" type="button" value="Speak">
+    </div>
+    <div id="info"></div>
+    <div id="subtitles"></div>
+</body>
+
+</html>
