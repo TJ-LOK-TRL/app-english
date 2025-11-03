@@ -45,7 +45,9 @@ fun MainNavigation(
         }
 
         composable(Screen.CHAT.route) {
-            ChatScreen()
+            ChatScreen(
+                recorder = recorder
+            )
         }
     }
 }

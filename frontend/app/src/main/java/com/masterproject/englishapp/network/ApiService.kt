@@ -3,19 +3,12 @@ package com.masterproject.englishapp.network
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
+import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
-import java.util.concurrent.TimeUnit
 
-interface ApiService {
-    @Multipart
-    @POST("/api/speech/evaluate-pronunciation")
-    suspend fun evaluatePronunciation(
-        @Part audio: MultipartBody.Part,
-        @Part("target_text") targetText: RequestBody
-    ): PronunciationResult
-}
+import java.util.concurrent.TimeUnit
 
 data class PronunciationResult(
     val results: List<WordResult>
@@ -27,8 +20,40 @@ data class WordResult(
     val label: String
 )
 
+data class ASRSegment(
+    val text: String,
+    @SerializedName("start_ts") val startTs: Float,
+    @SerializedName("end_ts") val endTs: Float,
+    val phonemes: String?
+)
+
+data class ConverseResult(
+    val text: String,
+    val audio: String, // base64 WAV
+    val tokens: List<ASRSegment>,
+    @SerializedName("pred_dur") val predDur: List<Float>
+)
+
+interface ApiService {
+    @Multipart
+    @POST("/api/speech/evaluate-pronunciation")
+    suspend fun evaluatePronunciation(
+        @Part audio: MultipartBody.Part,
+        @Part("target_text") targetText: RequestBody
+    ): PronunciationResult
+
+    @Multipart
+    @POST("/api/speech/converse")
+    suspend fun converse(
+        @Part audio: MultipartBody.Part,
+        @Part("lang") lang: RequestBody? = null,
+        @Part("voice") voice: RequestBody? = null,
+        @Part("speed") speed: RequestBody? = null
+    ): ConverseResult
+}
+
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.1.246:8080"
+    private const val BASE_URL = "http://192.168.1.232:8080"
 
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)   // connection timeout

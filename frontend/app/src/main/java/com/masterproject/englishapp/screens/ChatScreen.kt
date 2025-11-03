@@ -8,14 +8,13 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,10 +22,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
+import com.google.gson.Gson
+import com.masterproject.englishapp.audio.encodeWaveToBytes
+import com.masterproject.englishapp.network.RetrofitClient
+import com.masterproject.englishapp.recorder.AudioRecorder
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import android.util.Base64
+import android.util.Log
+import kotlin.math.roundToInt
+import org.json.JSONObject
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun ChatScreen() {
+fun ChatScreen(
+    recorder: AudioRecorder
+) {
     val inputText = remember { mutableStateOf("") }
     val webViewRef = remember { mutableStateOf<WebView?>(null) }
 
@@ -84,111 +102,138 @@ fun ChatScreen() {
                 .padding(16.dp)
                 .align(androidx.compose.ui.Alignment.BottomCenter)
         ) {
-            TextField(
-                value = inputText.value,
-                onValueChange = { inputText.value = it },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                placeholder = { Text("Type text for avatar...") },
-                singleLine = true
-            )
+            // Recorder instance
+            val isRecording = remember { mutableStateOf(false) }
 
             Button(
                 onClick = {
-                    if (inputText.value.isNotBlank()) {
-                        val js = """
-                            document.getElementById('text').value = '${inputText.value}';
-                            document.getElementById('speak').click();
-                        """.trimIndent()
-                        webViewRef.value?.evaluateJavascript(js, null)
-                        inputText.value = ""
+                    if (isRecording.value) {
+                        // Stop recording
+                        isRecording.value = false
+                        val wavFloats = recorder.stopRecording()
+                        if (wavFloats != null) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    val wavBytes = encodeWaveToBytes(wavFloats, 16000)
+                                    val data = handleConverseData(wavBytes)
+                                    withContext(Dispatchers.Main) {
+                                        val jsonStr = Gson().toJson(data)
+                                        val safeJson = JSONObject.quote(jsonStr)
+                                        webViewRef.value?.evaluateJavascript(
+                                            "window.speakAudio($safeJson);", null
+                                        )
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    } else {
+                        // Start recording
+                        isRecording.value = true
+                        recorder.startRecording { }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text("Speak")
+                Text(if (isRecording.value) "Stop Recording" else "Start Recording")
             }
         }
     }
 }
 
+// Função que chama o endpoint /converse
+suspend fun handleConverseData(
+    wavBytes: ByteArray,
+    lang: String? = null,
+    voice: String? = null,
+    speed: String? = null
+): TalkingHeadData {
+    val response = RetrofitClient.api.converse(
+        audio = MultipartBody.Part.createFormData(
+            "audio", "speech.wav", wavBytes.toRequestBody("audio/wav".toMediaTypeOrNull())
+        ),
+        lang = lang?.toRequestBody("text/plain".toMediaTypeOrNull()),
+        voice = voice?.toRequestBody("text/plain".toMediaTypeOrNull()),
+        speed = speed?.toRequestBody("text/plain".toMediaTypeOrNull())
+    )
 
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-fun ChatScreen2() {
-    val inputText = remember { mutableStateOf("") }
-    val webViewRef = remember { mutableStateOf<WebView?>(null) }
+    val audioBytes = Base64.decode(response.audio, Base64.DEFAULT)
+    val audioBase64 = Base64.encodeToString(audioBytes, Base64.NO_WRAP)
+    val tokens = response.tokens
+    val predDur = response.predDur
 
-    Column(Modifier.fillMaxSize()) {
-        // WebView
-        Card(Modifier.fillMaxWidth().weight(1f)) {
-            AndroidView(
-                factory = { context ->
-                    val assetLoader = WebViewAssetLoader.Builder()
-                        .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
-                        .build()
+    val audioBuffer = ByteBuffer.wrap(audioBytes, 44, audioBytes.size - 44)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .asShortBuffer()
+    val audioShorts = ShortArray(audioBuffer.remaining())
+    audioBuffer.get(audioShorts)
 
-                    WebView(context).apply {
-                        webViewClient = object : WebViewClient() {
-                            override fun shouldInterceptRequest(
-                                view: WebView?,
-                                request: WebResourceRequest?
-                            ): WebResourceResponse? {
-                                request?.url?.let { return assetLoader.shouldInterceptRequest(it) }
-                                return null
-                            }
-                        }
-                        webChromeClient = object : android.webkit.WebChromeClient() {
-                            override fun onConsoleMessage(consoleMessage: android.webkit.ConsoleMessage): Boolean {
-                                android.util.Log.d(
-                                    "WebViewJS",
-                                    "${consoleMessage.message()} (Line ${consoleMessage.lineNumber()})"
-                                )
-                                return true
-                            }
-                        }
+    val misakiToOculusViseme = mapOf(
+        "$" to null, ";" to null, ":" to null, "," to null, "." to null,
+        "!" to null, "?" to null, " " to null,
+        "ʣ" to "DD", "ʥ" to "CH", "ʦ" to "CH", "ʨ" to "CH",
+        "A" to "E", "I" to "I", "O" to "O", "S" to "SS", "T" to "DD",
+        "W" to "U", "Y" to "I", "a" to "aa", "b" to "PP", "c" to "kk",
+        "d" to "DD", "e" to "E", "f" to "FF", "i" to "I", "j" to "I",
+        "k" to "kk", "l" to "RR", "m" to "PP", "n" to "nn", "o" to "O",
+        "p" to "PP", "q" to "kk", "r" to "RR", "s" to "SS", "t" to "DD",
+        "u" to "U", "v" to "FF", "w" to "U", "x" to "SS", "y" to "I",
+        "z" to "SS"
+    )
 
-                        settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.NORMAL
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-                        settings.allowFileAccess = true
-                        settings.allowContentAccess = true
-                        settings.allowUniversalAccessFromFileURLs = true
-                        settings.allowFileAccessFromFileURLs = true
-                        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                        loadUrl("https://appassets.androidplatform.net/assets/web/avatar3D/index.html")
+    val frameToMs = { f: Int -> (f * 1000 / 24) }
 
-                        webViewRef.value = this
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+    var predIndex = 1
+    val visemes = mutableListOf<String>()
+    val vtimes = mutableListOf<Int>()
+    val vdurations = mutableListOf<Int>()
 
-        // Controls
-        Column(Modifier.fillMaxWidth()) {
-            TextField(
-                value = inputText.value,
-                onValueChange = { inputText.value = it },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                placeholder = { Text("Type text for avatar...") },
-                singleLine = true
-            )
-
-            Button(
-                onClick = {
-                    if (inputText.value.isNotBlank()) {
-                        val js = """
-                            document.getElementById('text').value = '${inputText.value}';
-                            document.getElementById('speak').click();
-                        """.trimIndent()
-                        webViewRef.value?.evaluateJavascript(js, null)
-                        inputText.value = ""
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-            ) {
-                Text("Speak")
+    for (token in tokens) {
+        val phonemes = token.phonemes ?: continue
+        for (ph in token.phonemes.toCharArray().map { it.toString() }) {
+            val durFrames = predDur.getOrElse(predIndex) { 0f }.roundToInt()
+            val durMs = frameToMs(durFrames)
+            val startMs = if (vtimes.isNotEmpty())
+                vtimes.last() + vdurations.last()
+            else
+                frameToMs(predDur.getOrElse(predIndex - 1) { 0f }.roundToInt())
+            val mapped = misakiToOculusViseme[ph]
+            if (mapped != null) {
+                visemes.add(mapped)
+                vtimes.add(startMs)
+                vdurations.add(durMs)
             }
+            predIndex++
         }
     }
+
+    val words = tokens.mapNotNull { it -> it.text.takeIf { it.trim().isNotEmpty() && !it.contains('<') } }
+    val wtimes = tokens.map { it -> it.startTs.let { (it * 24).toInt() * 1000 / 24 } }
+    val wdurations = tokens.map { ((it.endTs - it.startTs) * 1000).toInt() }
+
+    return TalkingHeadData(
+        words = words,
+        wtimes = wtimes,
+        wdurations = wdurations,
+        visemes = visemes,
+        vtimes = vtimes,
+        vdurations = vdurations,
+        audio = audioBase64,
+        audioEncoding = "wav"
+    )
 }
+
+// Data class para retorno
+data class TalkingHeadData(
+    val words: List<String>,
+    val wtimes: List<Int>,
+    val wdurations: List<Int>,
+    val visemes: List<String>,
+    val vtimes: List<Int>,
+    val vdurations: List<Int>,
+    val audio: String,
+    val audioEncoding: String
+)

@@ -18,7 +18,8 @@
         }
 
         #avatar {
-            position: fixed;   /* garante que fique sobre o body */
+            position: fixed;
+            /* garante que fique sobre o body */
             inset: 0;
             background-color: rgb(114, 114, 114);
         }
@@ -129,7 +130,6 @@
             // Selected person
             const person = persons["julia"];
 
-
             // Progress info
             const info = { head: "-", headtts: "-" };
             const updateInfo = (name, ev) => {
@@ -151,7 +151,6 @@
 
             // Load and show the avatar
             try {
-                el.speak.disabled = true;
                 el.info.style.display = 'block';
                 el.info.textContent = "Loading...";
 
@@ -162,7 +161,6 @@
                 head.cameraClock = 999; // Hack to prevent smooth transition
 
                 el.info.style.display = 'none';
-                el.speak.disabled = false;
             } catch (error) {
                 console.log(error);
                 info.error = error.message?.slice() || "Unknown error.";
@@ -180,9 +178,15 @@
             });
 
             const result = await response.json();
-            const tokens = result.tokens;
-            const predDur = result.pred_dur; // array de inteiros, duração em frames
             const audioBinary = Uint8Array.from(atob(result.audio), c => c.charCodeAt(0)).buffer;
+            return {
+                tokens: result.tokens,
+                predDur: result.pred_dur,
+                audioBinary
+            };
+        }
+
+        async function processSynthesizedAudio(audioBinary, tokens, predDur) {
             const audio = await head.audioCtx.decodeAudioData(audioBinary);
 
             const misakiToOculusViseme = {
@@ -284,7 +288,7 @@
         document.addEventListener('DOMContentLoaded', async function (e) {
             // Get all DOM elements with an `id`
             document.querySelectorAll('[id]').forEach(x => el[x.id] = x);
-            
+
             // Instantiate the TalkingHead class
             head = new TalkingHead(el.avatar, {
                 ttsEndpoint: "N/A",
@@ -293,15 +297,32 @@
                 mixerGainSpeech: 3,
                 cameraRotateEnable: false
             });
-            
+            window.head = head
+
+            // For external use
+            window.speakAudio = async (jsonStr) => {
+                const data = JSON.parse(jsonStr);
+                let head = window.head
+                const binary = atob(data.audio);
+                const len = binary.length;
+                const buffer = new ArrayBuffer(len);
+                const view = new Uint8Array(buffer);
+                for (let i = 0; i < len; i++) view[i] = binary.charCodeAt(i);
+                data.audio = await head.audioCtx.decodeAudioData(buffer);
+                console.log('Final data is:', data)
+                head.speakAudio(data, null, null);
+            }
+
             // Load the currently chosen person
             await loadPerson();
 
             // Speak when clicked
             el.speak.addEventListener('click', async function () {
-                let text = document.getElementById('text').value;
+                //let text = document.getElementById('text').value;
+                let text = "This is an example of how to speak english."
                 if (text) {
-                    let message = await synthesizeText(text);
+                    const { audioBinary, tokens, predDur } = await synthesizeText("Hello world");
+                    const message = await processSynthesizedAudio(audioBinary, tokens, predDur, audioCtx);
                     head.speakAudio(message.data, null, null);
                 }
             });
@@ -311,12 +332,7 @@
 
 <body>
     <div id="avatar"></div>
-    <div id="controls">
-        <input id="text" type="text" placeholder="Text" value="This is an example of how to speak english.">
-        <input id="speak" type="button" value="Speak">
-    </div>
     <div id="info"></div>
-    <div id="subtitles"></div>
 </body>
 
 </html>
