@@ -1,8 +1,8 @@
 from google import genai 
 from google.genai import types
-from typing import Dict, Optional, Any, Literal
+from typing import Dict, Optional, Any, Literal, Type
 from core.models.chat import ChatHistory
-from core.interfaces.ichat_service import IChatService
+from core.interfaces.ichat_service import IChatService, T
 
 class GeminiChatService(IChatService):
     """
@@ -17,14 +17,13 @@ class GeminiChatService(IChatService):
         """Helper to build a Gemini-compatible content object."""
         return types.Content(role=role, parts=[types.Part.from_text(text=text)])
          
-    def generate(
+    def _generate(
         self, 
         prompt: str, 
         history: Optional[ChatHistory] = None, 
         system_message: Optional[str] = None, 
-        *,
         config: Optional[Dict[str, Any]] = None
-    ) -> str:
+    ) -> types.GenerateContentResponse:
         """
         Generates a model response given the user prompt, optional history, and optional system message.
 
@@ -54,15 +53,37 @@ class GeminiChatService(IChatService):
         
         # Add current prompt message
         contents.append(self._get_content('user', prompt))
-              
+                            
         # Call Gemini API          
-        response = self.client.models.generate_content(
+        return self.client.models.generate_content(
             model=self.model,
             contents=contents,
             config=config
         )
         
-        return response.text
-        
-        
+    def generate(
+        self, 
+        prompt: str, 
+        history: Optional[ChatHistory] = None, 
+        system_message: Optional[str] = None, 
+        *,
+        config: Optional[Dict[str, Any]] = None
+    ) -> str:
+        return self._generate(prompt, history, system_message, config).text
     
+    def generate_parsed(
+        self, 
+        prompt: str, 
+        response_schema: Type[T] = None,
+        history: Optional[ChatHistory] = None, 
+        system_message: Optional[str] = None, 
+        *,
+        config: Optional[Dict[str, Any]] = None
+    ) -> T:
+        # Add response schema
+        if response_schema:
+            config |= {
+                'response_mime_type': 'application/json',
+                'response_schema': response_schema
+            }
+        return self._generate(prompt, history, system_message, config).parsed

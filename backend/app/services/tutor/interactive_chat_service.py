@@ -1,4 +1,5 @@
 from core.models.chat import ChatHistory
+from core.models.tutor import PhraseResponseStruct
 from core.interfaces.ichat_service import IChatService
 from services.chat.cache import ConversationCacheService, ConversationCacheKey
 
@@ -22,7 +23,7 @@ class InteractiveChatService:
         chat_history = self.cache.get(key) or ChatHistory(user_id, [])
         
         # Call chat api
-        response = self.chat_service.generate(message, chat_history, self.system_message)
+        response = self.chat_service.generate(message, chat_history, self.system_message, response_schema=PhraseResponseStruct)
         
         # Update conversation history
         chat_history.add_message('user', message)

@@ -111,6 +111,13 @@ async def converse(
     # Convert WAV to base64
     audio_b64 = wav_to_base64(wav, sr)
     
+    print({
+        'text': response,
+        'audio': audio_b64,
+        'tokens': tokens_info,
+        'pred_dur': pred_dur.tolist()
+    })
+    
     # 5. Return JSON ready for TalkingHead
     return JSONResponse({
         'text': response,
