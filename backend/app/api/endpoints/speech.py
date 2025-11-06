@@ -1,15 +1,16 @@
-import io
+import os
 import torch
-import base64
 import traceback
-import numpy as np
-import soundfile as sf
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import JSONResponse
 from core.enums.lang import Lang
 from services.tts.kokoro import KokoroTTSService, KokoroVoice
 from services.asr.whisper import WhisperASRService
 from services.pronunciation.pronunciation_evaluator import PronunciationEvaluator
+from services.chat.gemini import GeminiChatService
+from services.tutor.interactive_chat_service import InteractiveChatService
+from utils.audio_utils import wav_to_base64
+from utils.api_utils import read_audio_file
 
 router = APIRouter()
 
@@ -19,6 +20,9 @@ print('Using:', device)
 tts_service = KokoroTTSService(device)
 asr_service = WhisperASRService('tiny', device)
 pronunciation_evaluator = PronunciationEvaluator(tts_service)
+
+gemini_chat_service = GeminiChatService(os.getenv('GEMINI_API_KEY'))
+interactive_chat_service = InteractiveChatService(gemini_chat_service)
 
 @router.post('/evaluate-pronunciation')
 async def pronunciation_check(audio: UploadFile = File(...), target_text: str = Form(...)):
@@ -31,12 +35,8 @@ async def pronunciation_check(audio: UploadFile = File(...), target_text: str = 
         JSON response with recognized text and accuracy score
     '''
     try:
-        # Read the uploaded audio file as bytes
-        audio_bytes = await audio.read()
-
-        # Decode the audio bytes into a NumPy array
-        audio_array, _ = sf.read(io.BytesIO(audio_bytes))
-        audio_array = np.array(audio_array, dtype=np.float32)
+        # Read the uploaded audio file as bytes and decode it into a NumPy array
+        audio_array = await read_audio_file(audio)
 
         # Evaluate pronunciation using your evaluator
         result = pronunciation_evaluator.evaluate(audio_array, target_text)
@@ -61,13 +61,8 @@ async def synthesize(
         speed=speed
     )
 
-    # Writes audio to WAV buffer
-    buffer = io.BytesIO()
-    sf.write(buffer, wav, sr, format='WAV')
-    buffer.seek(0)
-
-    # Converts audio to base64
-    audio_b64 = base64.b64encode(buffer.read()).decode('utf-8')
+    # Convert WAV to base64
+    audio_b64 = wav_to_base64(wav, sr)
 
     # Returns JSON with base64 audio, sr and tokens (timestamps + phonemes)
     return JSONResponse({
@@ -82,7 +77,7 @@ async def converse(
     audio: UploadFile = File(...),
     lang: str = Form(Lang.EN_US),
     voice: str = Form(KokoroVoice.AMERICAN_FEMALE_HEART),
-    speed: float = Form(1)
+    speed: float = Form(1),
 ):
     """
     Receives audio, runs ASR, then TTS on recognized text.
@@ -94,33 +89,31 @@ async def converse(
         "pred_dur": durations for visemes
     }
     """
-    # 1. Read audio file
-    audio_bytes = await audio.read()
-    audio_array, _ = sf.read(io.BytesIO(audio_bytes))
-    audio_array = np.array(audio_array, dtype=np.float32)
+    # Read the uploaded audio file as bytes and decode it into a NumPy array
+    audio_array = await read_audio_file(audio)
 
-    # 2. Run ASR
+    # Run ASR
     recognized_text = asr_service.transcribe(audio_array).transcription
+    print('Message is:', recognized_text)
 
-    # 3. Run TTS on recognized text
+    # Get a response
+    response = interactive_chat_service.chat('0', recognized_text)
+    print('Gemini response was:', response)
+
+    # Run TTS on recognized text
     wav, sr, tokens_info, pred_dur = tts_service.synthesize(
-        text=recognized_text,
+        text=response,
         lang=lang,
         speaker=voice,
         speed=speed
     )
 
-    # 4. Convert WAV to base64
-    buffer = io.BytesIO()
-    sf.write(buffer, wav, sr, format='WAV')
-    buffer.seek(0)
+    # Convert WAV to base64
+    audio_b64 = wav_to_base64(wav, sr)
     
-    # Converts audio to base64
-    audio_b64 = base64.b64encode(buffer.read()).decode('utf-8')
-
     # 5. Return JSON ready for TalkingHead
     return JSONResponse({
-        'text': recognized_text,
+        'text': response,
         'audio': audio_b64,
         'tokens': tokens_info,
         'pred_dur': pred_dur.tolist()

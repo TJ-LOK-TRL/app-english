@@ -1,7 +1,8 @@
 import whisper
 import numpy as np
 from typing import Literal
-from core.interfaces.iasr_service import IASRService, ASRResult, Segment
+from core.models.asr import ASRResult, Segment
+from core.interfaces.iasr_service import IASRService
 
 class WhisperASRService(IASRService):
     def __init__(
