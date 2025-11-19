@@ -31,5 +31,8 @@ fun HomeScreen(onNavigate: (Screen) -> Unit) {
         Button(onClick = { onNavigate(Screen.CHAT) }) {
             Text("Go to Chat")
         }
+        Button(onClick = { onNavigate(Screen.CAMERA) }) {
+            Text("Go to Camera")
+        }
     }
 }

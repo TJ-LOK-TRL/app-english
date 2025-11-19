@@ -22,6 +22,7 @@ data class WordResult(
 
 data class ASRSegment(
     val text: String,
+    val whitespace: Boolean,
     @SerializedName("start_ts") val startTs: Float,
     @SerializedName("end_ts") val endTs: Float,
     val phonemes: String?

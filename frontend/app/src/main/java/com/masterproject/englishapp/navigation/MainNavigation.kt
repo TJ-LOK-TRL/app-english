@@ -5,15 +5,17 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.masterproject.englishapp.permissions.PermissionManager
 import com.masterproject.englishapp.recorder.AndroidAudioRecorder
 import com.masterproject.englishapp.screens.AudioRecorderScreen
 import com.masterproject.englishapp.screens.ChatScreen
 import com.masterproject.englishapp.screens.HomeScreen
+import com.masterproject.englishapp.screens.CameraScreen
 
 @Composable
 fun MainNavigation(
     navController: NavHostController,
-    isPermissionGranted: Boolean,
+    permissionManager: PermissionManager,
     recorder: AndroidAudioRecorder
 ) {
     NavHost(
@@ -23,13 +25,16 @@ fun MainNavigation(
         composable(Screen.HOME.route) {
             HomeScreen(
                 onNavigate = { screen ->
-                    navController.navigate(screen.route)
+                    permissionManager.ensurePermissions(
+                        required = screen.requiredPermissions,
+                        onGranted = { navController.navigate(screen.route) },
+                        onDenied = { }
+                    )
                 }
             )
         }
         composable(Screen.RECORDER.route) {
             AudioRecorderScreen(
-                isPermissionGranted = isPermissionGranted,
                 recorder = recorder,
             )
         }
@@ -48,6 +53,10 @@ fun MainNavigation(
             ChatScreen(
                 recorder = recorder
             )
+        }
+
+        composable(Screen.CAMERA.route) {
+            CameraScreen()
         }
     }
 }

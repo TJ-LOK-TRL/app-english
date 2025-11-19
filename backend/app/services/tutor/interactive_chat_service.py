@@ -20,10 +20,11 @@ class InteractiveChatService:
         key = ConversationCacheKey(user_id)
         
         # Load or create the chat history
-        chat_history = self.cache.get(key) or ChatHistory(user_id, [])
+        #chat_history = self.cache.get(key) or ChatHistory(user_id, [])
+        chat_history = ChatHistory(user_id, [])
         
         # Call chat api
-        response = self.chat_service.generate(message, chat_history, self.system_message, response_schema=PhraseResponseStruct)
+        response = self.chat_service.generate_parsed(message, PhraseResponseStruct, chat_history, self.system_message).response
         
         # Update conversation history
         chat_history.add_message('user', message)
@@ -31,7 +32,6 @@ class InteractiveChatService:
         self.cache.set(key, chat_history)
             
         return response
-
         
         
         

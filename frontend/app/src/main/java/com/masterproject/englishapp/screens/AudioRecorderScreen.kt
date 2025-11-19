@@ -32,7 +32,6 @@ import com.masterproject.englishapp.network.WordResult
 
 @Composable
 fun AudioRecorderScreen(
-    isPermissionGranted: Boolean,
     recorder: AudioRecorder
 ) {
     var isRecording by remember { mutableStateOf(false) }

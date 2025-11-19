@@ -19,52 +19,8 @@
 
         #avatar {
             position: fixed;
-            /* garante que fique sobre o body */
             inset: 0;
             background-color: rgb(114, 114, 114);
-        }
-
-        #controls {
-            display: none;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            max-height: Calc(100% - 40px);
-        }
-
-        #text {
-            display: block;
-            flex: 1 1;
-            max-width: 500px;
-            min-width: min(Calc(100vw - 40px), 300px);
-            height: 30px;
-            font-family: Arial;
-            font-size: 20px;
-            padding-left: 10px;
-        }
-
-        #speak {
-            display: block;
-            box-sizing: content-box;
-            height: 30px;
-            width: 70px;
-            font-family: Arial;
-            font-size: 20px;
-        }
-
-        #info {
-            display: block;
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            font-family: Arial;
-            font-size: 20px;
         }
     </style>
 
@@ -130,41 +86,15 @@
             // Selected person
             const person = persons["julia"];
 
-            // Progress info
-            const info = { head: "-", headtts: "-" };
-            const updateInfo = (name, ev) => {
-                if (ev) {
-                    if (ev.lengthComputable) {
-                        info[name] = Math.min(100, Math.round(ev.loaded / ev.total * 100)) + "%";
-                    } else {
-                        info[name] = Math.round(ev.loaded / 1000) + "KB";
-                    }
-                }
-                let s = "Loading: " + info.head + " / " + info.headtts;
-                console.log("progress: ", s)
-
-                if (info.hasOwnProperty("error")) {
-                    s += " ERROR:<br>&gt; " + info.error.replaceAll("\n", "<br>&gt; ");
-                }
-                el.info.innerHTML = s;
-            }
-
             // Load and show the avatar
             try {
-                el.info.style.display = 'block';
-                el.info.textContent = "Loading...";
-
-                await head.showAvatar(person.avatar, updateInfo.bind(null, "head"));
+                await head.showAvatar(person.avatar, null);
 
                 // Setup view
                 head.setView(head.viewName, person.view);
                 head.cameraClock = 999; // Hack to prevent smooth transition
-
-                el.info.style.display = 'none';
             } catch (error) {
                 console.log(error);
-                info.error = error.message?.slice() || "Unknown error.";
-                updateInfo();
             }
         }
 
@@ -172,7 +102,7 @@
             const formData = new FormData();
             formData.append("text", text);
 
-            const response = await fetch("http://192.168.1.246:8080/api/speech/kokoro/synthesize", {
+            const response = await fetch("http://127.0.0.1:8080/api/speech/kokoro/synthesize", {
                 method: "POST",
                 body: formData
             });
@@ -309,7 +239,23 @@
                 const view = new Uint8Array(buffer);
                 for (let i = 0; i < len; i++) view[i] = binary.charCodeAt(i);
                 data.audio = await head.audioCtx.decodeAudioData(buffer);
-                console.log('Final data is:', data)
+
+                const { audio, ...rest } = data;
+                console.log('Final data (no audio):', JSON.stringify(rest, null, 2));
+
+                console.log('Total viseme duration (ms):', data.vdurations.reduce((a, b) => a + b, 0));
+                console.log('Total audio duration (ms):', data.audio.duration * 1000);
+
+                const totalVisemeMs = data.vdurations.reduce((a, b) => a + b, 0);
+                const lastVEnd = (data.vtimes.length && data.vtimes[data.vtimes.length - 1] + data.vdurations[data.vdurations.length - 1]) || 0;
+                const audioMs = Math.round(data.audio.duration * 1000);
+
+                console.log('totalVisemeMs:', totalVisemeMs);
+                console.log('last viseme end (ms):', lastVEnd);
+                console.log('audio duration (ms):', audioMs);
+                console.log('diff totalVisemeMs vs audio:', audioMs - totalVisemeMs);
+                console.log('diff lastVEnd vs audio:', audioMs - lastVEnd);
+
                 head.speakAudio(data, null, null);
             }
 
@@ -317,22 +263,20 @@
             await loadPerson();
 
             // Speak when clicked
-            el.speak.addEventListener('click', async function () {
-                //let text = document.getElementById('text').value;
-                let text = "This is an example of how to speak english."
+            window.test = async function () {
+                let text = "This is an example of how to speak english. Now we have to learn how to say the basic stuff in english. This is an example!"
                 if (text) {
-                    const { audioBinary, tokens, predDur } = await synthesizeText("Hello world");
-                    const message = await processSynthesizedAudio(audioBinary, tokens, predDur, audioCtx);
+                    const { audioBinary, tokens, predDur } = await synthesizeText(text);
+                    const message = await processSynthesizedAudio(audioBinary, tokens, predDur, head.audioCtx);
                     head.speakAudio(message.data, null, null);
                 }
-            });
+            };
         })
     </script>
 </head>
 
 <body>
     <div id="avatar"></div>
-    <div id="info"></div>
 </body>
 
 </html>

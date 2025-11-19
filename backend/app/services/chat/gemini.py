@@ -82,6 +82,7 @@ class GeminiChatService(IChatService):
     ) -> T:
         # Add response schema
         if response_schema:
+            config = config or {}
             config |= {
                 'response_mime_type': 'application/json',
                 'response_schema': response_schema

@@ -144,7 +144,6 @@ fun ChatScreen(
     }
 }
 
-// Função que chama o endpoint /converse
 suspend fun handleConverseData(
     wavBytes: ByteArray,
     lang: String? = null,
@@ -171,19 +170,6 @@ suspend fun handleConverseData(
     val audioShorts = ShortArray(audioBuffer.remaining())
     audioBuffer.get(audioShorts)
 
-    val misakiToOculusViseme = mapOf(
-        "$" to null, ";" to null, ":" to null, "," to null, "." to null,
-        "!" to null, "?" to null, " " to null,
-        "ʣ" to "DD", "ʥ" to "CH", "ʦ" to "CH", "ʨ" to "CH",
-        "A" to "E", "I" to "I", "O" to "O", "S" to "SS", "T" to "DD",
-        "W" to "U", "Y" to "I", "a" to "aa", "b" to "PP", "c" to "kk",
-        "d" to "DD", "e" to "E", "f" to "FF", "i" to "I", "j" to "I",
-        "k" to "kk", "l" to "RR", "m" to "PP", "n" to "nn", "o" to "O",
-        "p" to "PP", "q" to "kk", "r" to "RR", "s" to "SS", "t" to "DD",
-        "u" to "U", "v" to "FF", "w" to "U", "x" to "SS", "y" to "I",
-        "z" to "SS"
-    )
-
     val frameToMs = { f: Int -> (f * 1000 / 24) }
 
     var predIndex = 1
@@ -192,7 +178,11 @@ suspend fun handleConverseData(
     val vdurations = mutableListOf<Int>()
 
     for (token in tokens) {
-        val phonemes = token.phonemes ?: continue
+        if (token.phonemes.isNullOrEmpty()) {
+            if (token.whitespace) predIndex++
+            continue
+        }
+
         for (ph in token.phonemes.toCharArray().map { it.toString() }) {
             val durFrames = predDur.getOrElse(predIndex) { 0f }.roundToInt()
             val durMs = frameToMs(durFrames)
@@ -208,11 +198,28 @@ suspend fun handleConverseData(
             }
             predIndex++
         }
+
+        if (token.whitespace) predIndex++
     }
 
-    val words = tokens.mapNotNull { it -> it.text.takeIf { it.trim().isNotEmpty() && !it.contains('<') } }
-    val wtimes = tokens.map { it -> it.startTs.let { (it * 24).toInt() * 1000 / 24 } }
-    val wdurations = tokens.map { ((it.endTs - it.startTs) * 1000).toInt() }
+    val filteredTokens = tokens.filter {
+        it.text.trim().isNotEmpty() && !it.text.contains('<')
+    }
+
+    val words = filteredTokens.map { it.text }
+    val wtimes = filteredTokens.map { (it.startTs * 1000).toInt() }
+    val wdurations = filteredTokens.map { ((it.endTs - it.startTs) * 1000).toInt() }
+
+    val audioDurationMs = (audioBytes.size - 44) / (24000 * 2 / 1000)
+    val lastVEnd = if (vtimes.isNotEmpty()) vtimes.last() + vdurations.last() else 0
+
+    if (lastVEnd != 0 && kotlin.math.abs(lastVEnd - audioDurationMs) != 0) {
+        val scale = audioDurationMs.toFloat() / lastVEnd
+        for (i in vtimes.indices) {
+            vtimes[i] = Math.round(vtimes[i] * scale)
+            vdurations[i] = Math.round(vdurations[i] * scale)
+        }
+    }
 
     return TalkingHeadData(
         words = words,
@@ -226,7 +233,6 @@ suspend fun handleConverseData(
     )
 }
 
-// Data class para retorno
 data class TalkingHeadData(
     val words: List<String>,
     val wtimes: List<Int>,
@@ -236,4 +242,24 @@ data class TalkingHeadData(
     val vdurations: List<Int>,
     val audio: String,
     val audioEncoding: String
+)
+
+private val misakiToOculusViseme = mapOf(
+    "$" to null, ";" to null, ":" to null, "," to null, "." to null, "!" to null, "?" to null,
+    "—" to null, "…" to null, "\"" to null, "(" to null, ")" to null, "“" to null, "”" to null,
+    " " to null, "\u0303" to null, "ʣ" to "DD", "ʥ" to "CH", "ʦ" to "CH", "ʨ" to "CH",
+    "ᵝ" to null, "ꭧ" to null, "A" to "E", "I" to "I", "O" to "O", "Q" to "O", "S" to "SS",
+    "T" to "DD", "W" to "U", "Y" to "I", "ᵊ" to null, "a" to "aa", "b" to "PP", "c" to "kk",
+    "d" to "DD", "e" to "E", "f" to "FF", "h" to null, "i" to "I", "j" to "I", "k" to "kk",
+    "l" to "RR", "m" to "PP", "n" to "nn", "o" to "O", "p" to "PP", "q" to "kk", "r" to "RR",
+    "s" to "SS", "t" to "DD", "u" to "U", "v" to "FF", "w" to "U", "x" to "SS", "y" to "I",
+    "z" to "SS", "ɑ" to "aa", "ɐ" to "aa", "ɒ" to "aa", "æ" to "aa", "β" to "FF", "ɔ" to "O",
+    "ɕ" to "SS", "ç" to "SS", "ɖ" to "DD", "ð" to "TH", "ʤ" to "CH", "ə" to "E", "ɚ" to "RR",
+    "ɛ" to "E", "ɜ" to "E", "ɟ" to "DD", "ɡ" to "kk", "ɥ" to "U", "ɨ" to "I", "ɪ" to "I",
+    "ʝ" to "I", "ɯ" to "U", "ɰ" to "U", "ŋ" to "nn", "ɳ" to "nn", "ɲ" to "nn", "ɴ" to "nn",
+    "ø" to "O", "ɸ" to "FF", "θ" to "TH", "œ" to "E", "ɹ" to "RR", "ɾ" to "DD", "ɻ" to "RR",
+    "ʁ" to "RR", "ɽ" to "RR", "ʂ" to "SS", "ʃ" to "SS", "ʈ" to "DD", "ʧ" to "CH",
+    "ʊ" to "U", "ʋ" to "FF", "ʌ" to "aa", "ɣ" to null, "ɤ" to "O", "χ" to null, "ʎ" to "RR",
+    "ʒ" to "SS", "ʔ" to null, "ˈ" to null, "ˌ" to null, "ː" to null, "ʰ" to null, "ʲ" to null,
+    "↓" to null, "→" to null, "↗" to null, "↘" to null, "ᵻ" to "I"
 )

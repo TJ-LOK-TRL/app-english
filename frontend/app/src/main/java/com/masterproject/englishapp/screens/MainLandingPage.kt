@@ -10,11 +10,12 @@ import androidx.navigation.compose.rememberNavController
 import com.masterproject.englishapp.components.CommonHeader
 import com.masterproject.englishapp.navigation.MainNavigation
 import com.masterproject.englishapp.navigation.Screen
+import com.masterproject.englishapp.permissions.PermissionManager
 import com.masterproject.englishapp.recorder.AndroidAudioRecorder
 
 @Composable
 fun MainLandingPage(
-    isPermissionGranted: Boolean,
+    permissionManager: PermissionManager,
     recorder: AndroidAudioRecorder
 ) {
     val navController = rememberNavController()
@@ -30,7 +31,7 @@ fun MainLandingPage(
         Box(modifier = Modifier.padding(innerPadding)) {
             MainNavigation(
                 navController = navController,
-                isPermissionGranted = isPermissionGranted,
+                permissionManager = permissionManager,
                 recorder = recorder
             )
         }

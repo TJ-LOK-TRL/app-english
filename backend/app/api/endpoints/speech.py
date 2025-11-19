@@ -100,7 +100,7 @@ async def converse(
     response = interactive_chat_service.chat('0', recognized_text)
     print('Gemini response was:', response)
 
-    # Run TTS on recognized text
+    # Run TTS on response
     wav, sr, tokens_info, pred_dur = tts_service.synthesize(
         text=response,
         lang=lang,
@@ -113,7 +113,6 @@ async def converse(
     
     print({
         'text': response,
-        'audio': audio_b64,
         'tokens': tokens_info,
         'pred_dur': pred_dur.tolist()
     })
