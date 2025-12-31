@@ -16,6 +16,14 @@ enum class AppPermission(
     CAMERA(
         Manifest.permission.CAMERA,
         "Camera access enables object detection features for interactive learning."
+    ),
+    WRITE_DISK(
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        "Write access is required to save debug images and other files."
+    ),
+    READ_DISK(
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        "Read access is required to load debug images and other files."
     );
 
     companion object {

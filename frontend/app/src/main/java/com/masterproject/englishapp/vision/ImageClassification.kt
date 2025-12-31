@@ -13,7 +13,7 @@ class ImageClassification(context: Context) {
     init {
         try {
             val options = ImageClassifier.ImageClassifierOptions.builder()
-                .setMaxResults(5)
+                .setMaxResults(1)
                 .build()
 
             classifier = ImageClassifier.createFromFileAndOptions(
@@ -26,25 +26,26 @@ class ImageClassification(context: Context) {
         }
     }
 
-    fun analyzeFrame(bitmap: Bitmap): List<VisionResult> {
+    fun analyzeFrame(bitmap: Bitmap): ImageClassificationResult? {
         return classifier?.let { classifier ->
             try {
                 val image = TensorImage.fromBitmap(bitmap)
                 val results: List<Classifications> = classifier.classify(image)
 
-                results.flatMap { classification ->
-                    classification.categories.map { category ->
-                        VisionResult(
+                results.firstOrNull()
+                    ?.categories
+                    ?.maxByOrNull { it.score }
+                    ?.let { category ->
+                        ImageClassificationResult(
                             label = category.label,
                             confidence = category.score
                         )
                     }
-                }
             } catch (e: Exception) {
                 Log.e("ObjectRecognition", "Error analyzing frame: ${e.message}")
-                emptyList()
+                null
             }
-        } ?: emptyList()
+        }
     }
 
     fun close() {
@@ -52,7 +53,7 @@ class ImageClassification(context: Context) {
     }
 }
 
-data class VisionResult(
+data class ImageClassificationResult(
     val label: String,
     val confidence: Float
 )

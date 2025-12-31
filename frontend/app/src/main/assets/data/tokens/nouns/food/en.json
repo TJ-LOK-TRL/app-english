@@ -1,0 +1,82 @@
+{
+  "banana": {
+    "values": "banana, bananas",
+    "example": "I eat a banana."
+  },
+  "beet": {
+    "values": "beet, beets",
+    "example": "The beet is red."
+  },
+  "birthday_cake": {
+    "values": "birthday cake, birthday cakes",
+    "example": "The birthday cake is big."
+  },
+  "bread": {
+    "values": "bread",
+    "example": "I eat bread."
+  },
+  "carrots": {
+    "values": "carrot, carrots",
+    "example": "The carrots are fresh."
+  },
+  "cheese": {
+    "values": "cheese",
+    "example": "I like cheese."
+  },
+  "chocolate": {
+    "values": "chocolate",
+    "example": "The chocolate is sweet."
+  },
+  "corn": {
+    "values": "corn",
+    "example": "Corn grows in the field."
+  },
+  "cupcake": {
+    "values": "cupcake, cupcakes",
+    "example": "The cupcake is delicious."
+  },
+  "eggplant": {
+    "values": "eggplant, eggplants",
+    "example": "The eggplant is purple."
+  },
+  "fish": {
+    "values": "fish",
+    "example": "The fish is fresh."
+  },
+  "fried_egg": {
+    "values": "fried egg, fried eggs",
+    "example": "I eat a fried egg."
+  },
+  "hamburger": {
+    "values": "hamburger, hamburgers",
+    "example": "The hamburger is hot."
+  },
+  "ice_cream": {
+    "values": "ice cream",
+    "example": "I like ice cream."
+  },
+  "kiwi": {
+    "values": "kiwi, kiwis",
+    "example": "The kiwi is green."
+  },
+  "mushroom": {
+    "values": "mushroom, mushrooms",
+    "example": "The mushroom is small."
+  },
+  "orange": {
+    "values": "orange, oranges",
+    "example": "The orange is sweet."
+  },
+  "pizza": {
+    "values": "pizza, pizzas",
+    "example": "I eat pizza."
+  },
+  "strawberry": {
+    "values": "strawberry, strawberries",
+    "example": "The strawberry is red."
+  },
+  "tomato": {
+    "values": "tomato, tomatoes",
+    "example": "The tomato is ripe."
+  }
+}

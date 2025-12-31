@@ -1,0 +1,35 @@
+package com.masterproject.englishapp.navigation
+
+import androidx.annotation.DrawableRes
+import com.masterproject.englishapp.R
+
+sealed class BottomNavItem(
+    val screen: Screen,
+    val title: String,
+    @DrawableRes val iconRes: Int
+) {
+
+    object Practice : BottomNavItem(
+        screen = Screen.PRACTICE,
+        title = "Practice",
+        iconRes = R.drawable.ic_graduation
+    )
+
+    object Lessons : BottomNavItem(
+        screen = Screen.PRACTICE,
+        title = "Lessons",
+        iconRes = R.drawable.ic_lessons
+    )
+
+    object Profile : BottomNavItem(
+        screen = Screen.PROFILE,
+        title = "Profile",
+        iconRes = R.drawable.ic_profile
+    )
+
+    object More : BottomNavItem(
+        screen = Screen.PRACTICE,
+        title = "More",
+        iconRes = R.drawable.ic_video
+    )
+}

@@ -22,14 +22,18 @@
         val overlays by cameraViewModel.overlays.collectAsState()
     
         Box(modifier = Modifier.fillMaxSize()) {
-            CameraPreview { bitmap ->
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastAnalysisTime >= cameraViewModel.analysisIntervalMs) {
-                    lastAnalysisTime = currentTime
-                    cameraViewModel.onFrameCaptured(bitmap)
+            CameraPreview(
+                onFrame = { bitmap ->
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastAnalysisTime >= cameraViewModel.analysisIntervalMs) {
+                        lastAnalysisTime = currentTime
+                        cameraViewModel.onFrameCaptured(bitmap)
+                    }
+                },
+                onPreviewSizeChanged = { w, h ->
+                    cameraViewModel.updatePreviewSize(w, h)
                 }
-            }
-
+            )
             OverlayLayer(shapes = overlays)
 
             Column(

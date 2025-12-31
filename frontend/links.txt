@@ -1,0 +1,10 @@
+https://cocalc.com/github/tensorflow/docs-l10n/blob/master/site/en-snapshot/lite/android/tutorials/object_detection.md
+https://www.kaggle.com/models/tensorflow/efficientnet/tfLite/lite4-fp32
+
+[ICONS]
+https://www.flaticon.com/free-icon/account_3033143
+https://www.flaticon.com/free-icon/book_9800294
+https://www.flaticon.com/free-icon/streaming_7359402
+https://www.flaticon.com/free-icon/education_16341478
+https://www.flaticon.com/free-icon/play-button-arrowhead_27223
+https://www.flaticon.com/free-icon/speaker-filled-audio-tool_59284

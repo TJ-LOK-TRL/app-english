@@ -2,58 +2,71 @@
 package com.masterproject.englishapp.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.masterproject.englishapp.permissions.PermissionManager
-import com.masterproject.englishapp.recorder.AndroidAudioRecorder
-import com.masterproject.englishapp.screens.AudioRecorderScreen
-import com.masterproject.englishapp.screens.ChatScreen
+import androidx.navigation.navArgument
+import com.masterproject.englishapp.navigation.params.ExerciseParams
 import com.masterproject.englishapp.screens.HomeScreen
 import com.masterproject.englishapp.screens.CameraScreen
+import com.masterproject.englishapp.screens.exercises.ExerciseFlowManager
+import com.masterproject.englishapp.screens.auth.login.LoginScreen
+import com.masterproject.englishapp.screens.intro.welcome.WelcomeScreen
 
 @Composable
 fun MainNavigation(
-    navController: NavHostController,
-    permissionManager: PermissionManager,
-    recorder: AndroidAudioRecorder
+    navigator: Navigator,
+    startDestination: String
 ) {
     NavHost(
-        navController = navController,
-        startDestination = Screen.HOME.route
+        navController = navigator.controller,
+        startDestination = startDestination
     ) {
+        composable(Screen.WELCOME.route) {
+            WelcomeScreen(navigator)
+        }
+
         composable(Screen.HOME.route) {
-            HomeScreen(
-                onNavigate = { screen ->
-                    permissionManager.ensurePermissions(
-                        required = screen.requiredPermissions,
-                        onGranted = { navController.navigate(screen.route) },
-                        onDenied = { }
-                    )
-                }
+            HomeScreen(navigator)
+        }
+
+        composable(Screen.LOGIN.route) {
+            LoginScreen(onLoginSuccess = {
+                navigator.navigate(Screen.HOME)
+            })
+        }
+
+        composable(
+            route = "${Screen.PRACTICE.route}?types={types}&categories={categories}&language={language}",
+            arguments = listOf(
+                navArgument("types") { defaultValue = "" },
+                navArgument("categories") { defaultValue = "" },
+                navArgument("language") { defaultValue = "en" }
+            )
+        ) { backStackEntry ->
+            val params = ExerciseParams.parseQuery(
+                types = backStackEntry.arguments?.getString("types"),
+                categories = backStackEntry.arguments?.getString("categories"),
+                language = backStackEntry.arguments?.getString("language")
+            )
+
+            ExerciseFlowManager(
+                navigator = navigator,
+                exerciseTypes = params.exerciseTypes,
+                categories = params.categories
             )
         }
-        composable(Screen.RECORDER.route) {
-            AudioRecorderScreen(
-                recorder = recorder,
-            )
-        }
-        composable(Screen.PRACTICE.route) {
-            //PracticeScreen(
-            //    onNavigateBack = { navController.navigateUp() }
-            //)
-        }
+
         composable(Screen.PROFILE.route) {
             //ProfileScreen(
             //    onNavigateBack = { navController.navigateUp() }
             //)
         }
 
-        composable(Screen.CHAT.route) {
-            ChatScreen(
-                recorder = recorder
-            )
-        }
+        //composable(Screen.CHAT.route) {
+        //    ChatScreen(
+        //        recorder = recorder
+        //    )
+        //}
 
         composable(Screen.CAMERA.route) {
             CameraScreen()

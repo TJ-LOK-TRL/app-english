@@ -1,0 +1,82 @@
+{
+  "bear": {
+    "values": "urso, ursos, ursa, ursas",
+    "example": "Eu vejo um urso."
+  },
+  "buffalo": {
+    "values": "búfalo, búfalos",
+    "example": "O búfalo é grande."
+  },
+  "camel": {
+    "values": "camelo, camelos",
+    "example": "O camelo está no deserto."
+  },
+  "cow": {
+    "values": "boi, bois, vaca, vacas",
+    "example": "A vaca come erva."
+  },
+  "dolphin": {
+    "values": "golfinho, golfinhos",
+    "example": "O golfinho está a nadar."
+  },
+  "elephant": {
+    "values": "elefante, elefantes",
+    "example": "O elefante é muito grande."
+  },
+  "frog": {
+    "values": "sapo, sapos",
+    "example": "O sapo salta."
+  },
+  "horse": {
+    "values": "cavalo, cavalos, égua, éguas",
+    "example": "O cavalo corre rápido."
+  },
+  "lion": {
+    "values": "leão, leões, leoa, leoas",
+    "example": "O leão é forte."
+  },
+  "monkey": {
+    "values": "macaco, macacos",
+    "example": "O macaco sobe à árvore."
+  },
+  "mouse": {
+    "values": "rato, ratos",
+    "example": "O rato é pequeno."
+  },
+  "owl": {
+    "values": "coruja, corujas",
+    "example": "A coruja está acordada à noite."
+  },
+  "penguin": {
+    "values": "pinguim, pinguins",
+    "example": "O pinguim vive em lugares frios."
+  },
+  "pig": {
+    "values": "porco, porcos, porca, porcas",
+    "example": "O porco vive na quinta."
+  },
+  "rooster": {
+    "values": "galo, galos",
+    "example": "O galo canta de manhã."
+  },
+  "shark": {
+    "values": "tubarão, tubarões",
+    "example": "O tubarão nada no oceano."
+  },
+  "skunk": {
+    "values": "gambá, gambás",
+    "example": "O gambá tem um cheiro forte."
+  },
+  "squirrel": {
+    "values": "esquilo, esquilos",
+    "example": "O esquilo come nozes."
+  },
+  "starfish": {
+    "values": "estrela-do-mar, estrelas-do-mar",
+    "example": "A estrela-do-mar está no mar."
+  },
+  "turtle": {
+    "values": "tartaruga, tartarugas",
+    "example": "A tartaruga anda devagar."
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "714358578032",
+    "project_id": "englishapp-c3c0f",
+    "storage_bucket": "englishapp-c3c0f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:714358578032:android:fcc5efdf74eb79e2728db5",
+        "android_client_info": {
+          "package_name": "com.masterproject.englishapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByEwZr4pbSLcflyIApKF8anjMpQa3iuuw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

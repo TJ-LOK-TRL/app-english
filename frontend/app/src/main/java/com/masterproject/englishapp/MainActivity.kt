@@ -6,18 +6,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.masterproject.englishapp.permissions.PermissionManager
 import com.masterproject.englishapp.recorder.AndroidAudioRecorder
-import com.masterproject.englishapp.screens.MainLandingPage
+import com.masterproject.englishapp.screens.main.MainLandingPage
 import com.masterproject.englishapp.ui.theme.MyApplicationTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * MainActivity - Entry point of the English Learning Application
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    // Initialize recorder here - it's the app-level dependency
-    private val recorder by lazy {
-        AndroidAudioRecorder(applicationContext)
-    }
 
     private lateinit var permissionManager: PermissionManager
 
@@ -31,7 +28,6 @@ class MainActivity : ComponentActivity() {
             MyApplicationTheme {
                 MainLandingPage(
                     permissionManager = permissionManager,
-                    recorder = recorder
                 )
             }
         }

@@ -1,39 +1,11 @@
 package com.masterproject.englishapp.network
 
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
-import com.google.gson.annotations.SerializedName
+import com.masterproject.englishapp.network.model.ConverseResult
+import com.masterproject.englishapp.network.model.PronunciationResult
+import com.masterproject.englishapp.network.model.SynthesizeResult
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
 import okhttp3.RequestBody
-
-import java.util.concurrent.TimeUnit
-
-data class PronunciationResult(
-    val results: List<WordResult>
-)
-
-data class WordResult(
-    val phonemes: List<String>,
-    val score: Float,
-    val label: String
-)
-
-data class ASRSegment(
-    val text: String,
-    val whitespace: Boolean,
-    @SerializedName("start_ts") val startTs: Float,
-    @SerializedName("end_ts") val endTs: Float,
-    val phonemes: String?
-)
-
-data class ConverseResult(
-    val text: String,
-    val audio: String, // base64 WAV
-    val tokens: List<ASRSegment>,
-    @SerializedName("pred_dur") val predDur: List<Float>
-)
 
 interface ApiService {
     @Multipart
@@ -51,23 +23,13 @@ interface ApiService {
         @Part("voice") voice: RequestBody? = null,
         @Part("speed") speed: RequestBody? = null
     ): ConverseResult
-}
 
-object RetrofitClient {
-    private const val BASE_URL = "http://192.168.1.232:8080"
-
-    private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)   // connection timeout
-        .readTimeout(60, TimeUnit.SECONDS)      // read timeout
-        .writeTimeout(60, TimeUnit.SECONDS)     // write timeout
-        .build()
-
-    val api: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
-    }
+    @FormUrlEncoded
+    @POST("/api/speech/kokoro/synthesize")
+    suspend fun synthesize(
+        @Field("text") text: String,
+        @Field("lang") lang: String = "en-US",
+        @Field("voice") voice: String = "af_heart",
+        @Field("speed") speed: Float = 1.0f
+    ): SynthesizeResult
 }

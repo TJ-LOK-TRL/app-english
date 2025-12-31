@@ -1,0 +1,82 @@
+{
+  "banana": {
+    "values": "banana, bananas",
+    "example": "Eu como uma banana."
+  },
+  "beet": {
+    "values": "beterraba, beterrabas",
+    "example": "A beterraba é vermelha."
+  },
+  "birthday_cake": {
+    "values": "bolo de aniversário, bolos de aniversário",
+    "example": "O bolo de aniversário é grande."
+  },
+  "bread": {
+    "values": "pão, pães",
+    "example": "Eu como pão."
+  },
+  "carrots": {
+    "values": "cenoura, cenouras",
+    "example": "As cenouras são frescas."
+  },
+  "cheese": {
+    "values": "queijo, queijos",
+    "example": "Eu gosto de queijo."
+  },
+  "chocolate": {
+    "values": "chocolate, chocolates",
+    "example": "O chocolate é doce."
+  },
+  "corn": {
+    "values": "milho",
+    "example": "O milho cresce no campo."
+  },
+  "cupcake": {
+    "values": "cupcake, cupcakes",
+    "example": "O cupcake é delicioso."
+  },
+  "eggplant": {
+    "values": "beringela, beringelas",
+    "example": "A beringela é roxa."
+  },
+  "fish": {
+    "values": "peixe, peixes",
+    "example": "O peixe é fresco."
+  },
+  "fried_egg": {
+    "values": "ovo estrelado, ovos estrelados",
+    "example": "Eu como um ovo estrelado."
+  },
+  "hamburger": {
+    "values": "hambúrguer, hambúrgueres",
+    "example": "O hambúrguer está quente."
+  },
+  "ice_cream": {
+    "values": "gelado, gelados",
+    "example": "Eu gosto de gelado."
+  },
+  "kiwi": {
+    "values": "kiwi, kiwis",
+    "example": "O kiwi é verde."
+  },
+  "mushroom": {
+    "values": "cogumelo, cogumelos",
+    "example": "O cogumelo é pequeno."
+  },
+  "orange": {
+    "values": "laranja, laranjas",
+    "example": "A laranja é doce."
+  },
+  "pizza": {
+    "values": "pizza, pizzas",
+    "example": "Eu como pizza."
+  },
+  "strawberry": {
+    "values": "morango, morangos",
+    "example": "O morango é vermelho."
+  },
+  "tomato": {
+    "values": "tomate, tomates",
+    "example": "O tomate está maduro."
+  }
+}

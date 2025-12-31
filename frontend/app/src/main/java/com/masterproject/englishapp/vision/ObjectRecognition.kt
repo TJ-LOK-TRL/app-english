@@ -29,7 +29,7 @@ class ObjectRecognition(context: Context) {
         }
     }
 
-    fun analyzeFrame(bitmap: Bitmap): List<ObjectResult> {
+    fun analyzeFrame(bitmap: Bitmap): List<ObjectDetectionResult> {
         return detector?.let { det ->
             try {
                 val tensorImage = TensorImage.fromBitmap(bitmap)
@@ -39,14 +39,9 @@ class ObjectRecognition(context: Context) {
                 results.map { detection ->
                     val label = detection.categories.firstOrNull()?.label ?: "Unknown"
                     val confidence = detection.categories.firstOrNull()?.score ?: 0f
-                    val boxF: RectF = detection.boundingBox
-                    val box = Rect(
-                        boxF.left.toInt(),
-                        boxF.top.toInt(),
-                        boxF.right.toInt(),
-                        boxF.bottom.toInt()
-                    )
-                    ObjectResult(
+                    val box: RectF = detection.boundingBox
+
+                    ObjectDetectionResult(
                         label = label,
                         confidence = confidence,
                         boundingBox = box
@@ -64,8 +59,8 @@ class ObjectRecognition(context: Context) {
     }
 }
 
-data class ObjectResult(
+data class ObjectDetectionResult(
     val label: String,
     val confidence: Float,
-    val boundingBox: android.graphics.Rect
+    val boundingBox: RectF
 )

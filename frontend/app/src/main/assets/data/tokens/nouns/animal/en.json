@@ -1,0 +1,82 @@
+{
+    "bear": {
+        "values": "bear, bears",
+        "example": "I see a bear."
+    },
+    "buffalo": {
+        "values": "buffalo, buffaloes",
+        "example": "The buffalo is big."
+    },
+    "camel": {
+        "values": "camel, camels",
+        "example": "The camel is in the desert."
+    },
+    "cow": {
+        "values": "cow, cows",
+        "example": "The cow eats grass."
+    },
+    "dolphin": {
+        "values": "dolphin, dolphins",
+        "example": "The dolphin is swimming."
+    },
+    "elephant": {
+        "values": "elephant, elephants",
+        "example": "The elephant is very big."
+    },
+    "frog": {
+        "values": "frog, frogs",
+        "example": "The frog jumps."
+    },
+    "horse": {
+        "values": "horse, horses",
+        "example": "The horse runs fast."
+    },
+    "lion": {
+        "values": "lion, lions",
+        "example": "The lion is strong."
+    },
+    "monkey": {
+        "values": "monkey, monkeys",
+        "example": "The monkey climbs the tree."
+    },
+    "mouse": {
+        "values": "mouse, mice",
+        "example": "The mouse is small."
+    },
+    "owl": {
+        "values": "owl, owls",
+        "example": "The owl is awake at night."
+    },
+    "penguin": {
+        "values": "penguin, penguins",
+        "example": "The penguin lives in cold places."
+    },
+    "pig": {
+        "values": "pig, pigs",
+        "example": "The pig is on the farm."
+    },
+    "rooster": {
+        "values": "rooster, roosters",
+        "example": "The rooster crows in the morning."
+    },
+    "shark": {
+        "values": "shark, sharks",
+        "example": "The shark swims in the ocean."
+    },
+    "skunk": {
+        "values": "skunk, skunks",
+        "example": "The skunk has a strong smell."
+    },
+    "squirrel": {
+        "values": "squirrel, squirrels",
+        "example": "The squirrel eats nuts."
+    },
+    "starfish": {
+        "values": "starfish, starfish",
+        "example": "The starfish is in the sea."
+    },
+    "turtle": {
+        "values": "turtle, turtles",
+        "example": "The turtle moves slowly."
+    }
+}
