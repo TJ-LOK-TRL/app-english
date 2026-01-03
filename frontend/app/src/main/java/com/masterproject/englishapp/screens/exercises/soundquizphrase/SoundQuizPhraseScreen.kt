@@ -3,16 +3,12 @@ package com.masterproject.englishapp.screens.exercises.soundquizphrase
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,17 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masterproject.englishapp.components.AppIcon
-import com.masterproject.englishapp.components.optiongrid.TextImageAnswerOption
-import com.masterproject.englishapp.components.tokenImagePainter
-import com.masterproject.englishapp.data.Category
 import com.masterproject.englishapp.data.Language
-import com.masterproject.englishapp.data.token.Token
-import com.masterproject.englishapp.data.token.TokenId
-import com.masterproject.englishapp.exercises.SoundQuizData
-import com.masterproject.englishapp.grammar.GClass
-import com.masterproject.englishapp.grammar.GNumber
-import com.masterproject.englishapp.grammar.Gender
-import com.masterproject.englishapp.grammar.NounValue
 import com.masterproject.englishapp.R
 import com.masterproject.englishapp.audio.playPcmAudio
 import com.masterproject.englishapp.components.bubble.Bubble
@@ -159,8 +145,14 @@ fun SoundQuizPhraseContent(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = 16.dp,
                     onClick = {
-                        val isCorrect = phrase.id == data.correctPhrase.id
-                        onResult(ExerciseResult.fromBool(isCorrect))
+                        onResult(
+                            ExerciseResult.fromBool(
+                                skillIds = listOf(data.correctPhrase.id),
+                                isCorrect = phrase.id == data.correctPhrase.id,
+                                correctMessage = null,
+                                wrongMessage = null
+                            )
+                        )
                     }
                 ) {
                     Text(

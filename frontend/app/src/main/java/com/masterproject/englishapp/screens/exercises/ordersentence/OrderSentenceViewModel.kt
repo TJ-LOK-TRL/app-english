@@ -11,7 +11,7 @@ import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.exercises.OrderSentence
 import com.masterproject.englishapp.exercises.OrderSentenceData
 import com.masterproject.englishapp.exercises.base.ExerciseInfo
-import com.masterproject.englishapp.exercises.base.ExerciseViewModel
+import com.masterproject.englishapp.exercises.base.BaseExerciseViewModel
 import com.masterproject.englishapp.learning.selector.AdaptiveSelector
 import com.masterproject.englishapp.result.onError
 import com.masterproject.englishapp.result.onSuccess
@@ -26,26 +26,21 @@ class OrderSentenceViewModel @Inject constructor(
     private val phraseLoader: PhraseLoader,
     private val userContext: UserContext,
     private val uiEventService: UiEventService
-) : ViewModel(), ExerciseViewModel<OrderSentenceData> {
-
-    override var uiState by mutableStateOf<OrderSentenceData?>(null)
-        private set
+) : BaseExerciseViewModel<OrderSentenceData>() {
 
     override fun loadNext(info: ExerciseInfo) {
         uiState = null
+
         viewModelScope.launch {
             val manager = OrderSentence(phraseLoader)
-            val model = userContext.modelOrBlind()
 
-            val selector = AdaptiveSelector<Phrase>(model)
-
-            manager.getData(
+            val result = manager.getData(
                 learningLanguage = userContext.learningLanguage,
                 feedbackLanguage = userContext.feedbackLanguage,
-                phraseSelector = selector
+                phraseSelector = AdaptiveSelector(userContext.modelOrBlind())
             )
-                .onError { uiEventService.showError(it) }
-                .onSuccess { uiState = it }
+
+            handleResult(result, uiEventService)
         }
     }
 }

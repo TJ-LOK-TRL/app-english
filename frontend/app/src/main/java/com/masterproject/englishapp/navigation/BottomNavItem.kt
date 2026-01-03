@@ -10,13 +10,13 @@ sealed class BottomNavItem(
 ) {
 
     object Practice : BottomNavItem(
-        screen = Screen.PRACTICE,
+        screen = Screen.HOME,
         title = "Practice",
         iconRes = R.drawable.ic_graduation
     )
 
     object Lessons : BottomNavItem(
-        screen = Screen.PRACTICE,
+        screen = Screen.VIDEOS,
         title = "Lessons",
         iconRes = R.drawable.ic_lessons
     )

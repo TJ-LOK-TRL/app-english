@@ -35,6 +35,8 @@ import com.masterproject.englishapp.data.phrase.Phrase
 import com.masterproject.englishapp.exercises.SelectCorrectWordData
 import com.masterproject.englishapp.exercises.model.ExerciseResult
 import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.utils.extractSkillIds
+
 @Composable
 fun SelectCorrectWordContent(
     data: SelectCorrectWordData,
@@ -115,7 +117,16 @@ fun SelectCorrectWordContent(
                 Rect3DCard(
                     contentPadding = 18.dp,
                     onClick = {
-                        onResult(ExerciseResult.fromBool(word == data.correctOption))
+                        val translation = "Significado: ${data.feedbackPhrase.text}"
+
+                        onResult(
+                            ExerciseResult.fromBool(
+                                skillIds = data.learningPhrase.extractSkillIds(),
+                                isCorrect = word == data.correctOption,
+                                correctMessage = translation,
+                                wrongMessage = translation
+                            )
+                        )
                     }
                 ) {
                     Text(

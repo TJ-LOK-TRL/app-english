@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masterproject.englishapp.R
 import com.masterproject.englishapp.components.AppIcon
+import com.masterproject.englishapp.components.SpeakLayout
 import com.masterproject.englishapp.components.bubble.Bubble
 import com.masterproject.englishapp.components.bubble.Side
 import com.masterproject.englishapp.components.buttons.Circular3DButton
@@ -32,71 +33,30 @@ import com.masterproject.englishapp.exercises.model.ExerciseResult
 import com.masterproject.englishapp.grammar.GClass
 import com.masterproject.englishapp.recorder.AudioRecorder
 import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.utils.DummyAudioRecorder
+import com.masterproject.englishapp.utils.extractSkillIds
 
 @Composable
-fun SpeakWordContent(
-    data: SpeakTokenData,
-    onResult: (ExerciseResult) -> Unit
-) {
-    var isSpeaking by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isSpeaking) {
-        if (!isSpeaking) return@LaunchedEffect
-
-        isSpeaking = false
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp, end = 16.dp, top = 0.dp, bottom = 0.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AppIcon(
-                resId = R.drawable.dragon_point_up_small,
-                size = 96.dp,
-                flipHorizontal = true
-            )
-            Bubble(text = "Say the words!", side = Side.Left, textColor = AppColors.Black800)
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            TextImageAnswerOption(
-                text = data.learningWord.replaceFirstChar { it.uppercase() },
-                image = tokenImagePainter(data.tokenId),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.SemiBold,
-                borderColor = AppColors.Gray400,
-                textOnTop = true,
-                imageTextSpacing = 24.dp,
-                aspectRatio = 0.85f,
-                onClick = { }
-            )
-        }
-
-        Row {
-            Circular3DButton(
-                size = 72.dp,
-                color = AppColors.Primary,
-                depth = 3.dp,
-                contentOffsetX = 2.dp,
-                onClick = {
-                    if (!isSpeaking) {
-                        isSpeaking = true
-                    }
-                }
-            ) {
-                AppIcon(
-                    resId = if (isSpeaking) R.drawable.ic_microphone_cutted else R.drawable.ic_microphone,
-                    size = 32.dp,
-                    tint = Color.White
-                )
-            }
-        }
+fun SpeakWordContent(data: SpeakTokenData, onResult: (ExerciseResult) -> Unit) {
+    SpeakLayout(
+        recorder = data.recorder,
+        skillIds = data.learningWord.extractSkillIds(),
+        targetText = data.learningWord,
+        feedbackText = data.feedbackWord,
+        instruction = "Say the words!",
+        onResult = onResult
+    ) { annotatedText ->
+        TextImageAnswerOption(
+            text = data.learningWord.replaceFirstChar { it.uppercase() },
+            image = tokenImagePainter(data.tokenId),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.SemiBold,
+            borderColor = AppColors.Gray400,
+            textOnTop = true,
+            imageTextSpacing = 24.dp,
+            aspectRatio = 0.85f,
+            onClick = { }
+        )
     }
 }
 
@@ -114,16 +74,7 @@ fun SpeakPhraseScreenPreview() {
             tokenId = TokenId(GClass.NOUN, Category.ANIMAL, "bear"),
             learningWord = "bear",
             feedbackWord = "urso",
-            recorder = object : AudioRecorder {
-                override fun startRecording(onAudioData: (FloatArray) -> Unit) { }
-
-                override fun stopRecording(): FloatArray? {
-                    return null
-                }
-
-                override val isRecording: Boolean
-                    get() = false
-            }
+            recorder = DummyAudioRecorder
         ),
         onResult = { }
     )

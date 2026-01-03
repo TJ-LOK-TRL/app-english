@@ -16,7 +16,7 @@ import com.masterproject.englishapp.components.YouTubePlayer
 
 @Preview(showBackground = true)
 @Composable
-fun LessonScreen() {
+fun VideoLessonsScreen() {
 
     val lessons = listOf(
         Lesson("Basic Greetings", "How to say hello and goodbye", "YrJy_aymi6M"),         // Greetings & expressions for beginners (YouTube) :contentReference[oaicite:0]{index=0}

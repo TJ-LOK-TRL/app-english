@@ -5,16 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.masterproject.englishapp.data.Category
-import com.masterproject.englishapp.data.Language
 import com.masterproject.englishapp.data.loader.PhraseLoader
 import com.masterproject.englishapp.data.phrase.Phrase
 import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.exercises.BoolMeaning
 import com.masterproject.englishapp.exercises.BoolMeaningData
-import com.masterproject.englishapp.exercises.SoundQuizData
 import com.masterproject.englishapp.exercises.base.ExerciseInfo
-import com.masterproject.englishapp.exercises.base.ExerciseViewModel
+import com.masterproject.englishapp.exercises.base.BaseExerciseViewModel
 import com.masterproject.englishapp.learning.selector.AdaptiveSelector
 import com.masterproject.englishapp.result.onError
 import com.masterproject.englishapp.result.onSuccess
@@ -29,26 +26,21 @@ class BoolMeaningViewModel @Inject constructor(
     private val phraseLoader: PhraseLoader,
     private val userContext: UserContext,
     private val uiEventService: UiEventService
-) : ViewModel(), ExerciseViewModel<BoolMeaningData> {
-
-    override var uiState by mutableStateOf<BoolMeaningData?>(null)
-        private set
+) : BaseExerciseViewModel<BoolMeaningData>() {
 
     override fun loadNext(info: ExerciseInfo) {
         uiState = null
+
         viewModelScope.launch {
             val manager = BoolMeaning(phraseLoader)
-            val model = userContext.modelOrBlind()
 
-            val selector = AdaptiveSelector<Phrase>(model)
-
-            manager.getData(
+            val result = manager.getData(
                 learningLanguage = userContext.learningLanguage,
                 feedbackLanguage = userContext.feedbackLanguage,
-                phraseSelector = selector
+                phraseSelector = AdaptiveSelector(userContext.modelOrBlind())
             )
-                .onError { uiEventService.showError(it) }
-                .onSuccess { uiState = it }
+
+            handleResult(result, uiEventService)
         }
     }
 }

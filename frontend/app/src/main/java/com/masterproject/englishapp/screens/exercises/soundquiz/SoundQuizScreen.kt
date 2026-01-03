@@ -46,6 +46,8 @@ import com.masterproject.englishapp.components.bubble.Side
 import com.masterproject.englishapp.components.buttons.Circular3DButton
 import com.masterproject.englishapp.exercises.model.ExerciseResult
 import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.network.safeApiCall
+
 @Composable
 fun SoundQuizContent(
     data: SoundQuizData,
@@ -161,11 +163,14 @@ fun SoundQuizContent(
                     borderWidth = 1.dp,
                     imageTextSpacing = 20.dp
                 ) {
-                    if (token == data.correctToken) {
-                        onResult(ExerciseResult.Correct())
-                    } else {
-                        onResult(ExerciseResult.Wrong())
-                    }
+                    onResult(
+                        ExerciseResult.fromBool(
+                            skillIds = listOf(data.correctToken.id.toString()),
+                            isCorrect = token == data.correctToken,
+                            correctMessage = null,
+                            wrongMessage = null
+                        )
+                    )
                 }
             }
         }

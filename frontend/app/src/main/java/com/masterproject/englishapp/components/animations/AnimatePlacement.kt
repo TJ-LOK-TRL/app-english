@@ -1,4 +1,4 @@
-package com.masterproject.englishapp.components
+package com.masterproject.englishapp.components.animations
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector2D

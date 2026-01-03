@@ -30,9 +30,10 @@ import com.masterproject.englishapp.navigation.NavigationActions
 import com.masterproject.englishapp.navigation.params.ExerciseParams
 import com.masterproject.englishapp.components.cardspots.SpotPosition
 import com.masterproject.englishapp.components.cardspots.CardSpots
+import com.masterproject.englishapp.utils.DummyNavigator
 
 @Composable
-fun HomeScreen(navigator: NavigationActions) {
+fun HomeScreen2(navigator: NavigationActions) {
 
     LazyColumn(
         modifier = Modifier
@@ -62,12 +63,38 @@ fun HomeScreen(navigator: NavigationActions) {
     }
 }
 
-@Preview(showBackground = true)
+@Composable
+fun HomeScreen(navigator: NavigationActions) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        HomeHeader()
+        Spacer(modifier = Modifier.height(20.dp))
+        LearningHorizontalSection(navigator)
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = "Practice",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        PracticeSection(navigator, modifier = Modifier.weight(1f))
+    }
+}
+
+@Preview(
+    name = "Xiaomi Redmi 9C",
+    device = "spec:width=360dp,height=800dp,dpi=269",
+    showSystemUi = true,
+    showBackground = true,
+    backgroundColor = 0xFFEEEEEE
+)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(object : NavigationActions {
-        override fun navigate(screen: Screen, params: String?, navOptions: NavOptionsBuilder.() -> Unit) { }
-    })
+    HomeScreen(DummyNavigator)
 }
 
 @Composable
@@ -201,7 +228,59 @@ fun LearningCard(
 }
 
 @Composable
-fun PracticeSection(navigator: NavigationActions) {
+fun PracticeSection(navigator: NavigationActions, modifier: Modifier = Modifier) {
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            PracticeCard(
+                R.drawable.ic_speech,
+                "Pronunciation",
+                description = "Perfect your accent and intonation",
+                0.7f
+            ) {
+                navigator.navigate(
+                    Screen.PRACTICE,
+                    ExerciseParams(exerciseType = ExerciseType.SPEAK).toQuery()
+                )
+            }
+        }
+        item {
+            PracticeCard(
+                R.drawable.ic_chat,
+                "Chat",
+                description = "Talk with interactive chat exercises",
+                0.5f
+            ) {
+
+            }
+        }
+        item {
+            PracticeCard(
+                R.drawable.ic_robot_human,
+                "Conversation",
+                description = "Build real conversational skills",
+                0.35f
+            ) {
+
+            }
+        }
+        item {
+            PracticeCard(
+                R.drawable.ic_camera,
+                "Object Identification",
+                description = "Discover objets names with camera",
+                0.35f
+            ) {
+                navigator.navigate(Screen.CAMERA)
+            }
+        }
+    }
+}
+
+@Composable
+fun PracticeSection2(navigator: NavigationActions) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         PracticeCard(
             R.drawable.ic_speech,
@@ -229,6 +308,14 @@ fun PracticeSection(navigator: NavigationActions) {
             0.35f
         ) {
 
+        }
+        PracticeCard(
+            R.drawable.ic_camera,
+            "Object Identification",
+            description = "Discover objets names with camera",
+            0.35f
+        ) {
+            navigator.navigate(Screen.CAMERA)
         }
     }
 }

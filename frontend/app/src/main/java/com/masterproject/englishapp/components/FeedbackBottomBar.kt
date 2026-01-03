@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,7 +65,7 @@ fun FeedbackBottomBar(
                     }
                 }
 
-                // Ícones de comentário/flag como na imagem (opcional)
+                // TODO: commentary/flag/report!
                 //Row {
                 //    Icon(Icons.Default.ChatBubbleOutline, null, tint = contentColor, modifier = Modifier.padding(8.dp))
                 //    Icon(Icons.Default.OutlinedFlag, null, tint = contentColor, modifier = Modifier.padding(8.dp))
@@ -76,7 +77,11 @@ fun FeedbackBottomBar(
             Button(
                 modifier = Modifier
                     .fillMaxWidth(),
-                onClick = onContinue
+                onClick = onContinue,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = buttonColor,
+                    contentColor = Color.White
+                )
             ) {
                 Text(
                     "CONTINUE",

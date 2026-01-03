@@ -38,13 +38,16 @@ fun MainLandingPage(
         val navigator = Navigator(navController, permissionManager)
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
-        val startRoute = if (mainViewModel.isLoggedIn) Screen.HOME.route else Screen.LOGIN.route
+        val startRoute = if (mainViewModel.isLoggedIn) Screen.HOME.route else Screen.WELCOME.route
 
         val shouldShowBars = remember(currentRoute) {
             when {
                 currentRoute == null -> true
                 currentRoute.startsWith(Screen.PRACTICE.route) -> false
                 currentRoute.startsWith(Screen.LOGIN.route) -> false
+                currentRoute.startsWith(Screen.REGISTER.route) -> false
+                currentRoute.startsWith(Screen.INTRO.route) -> false
+                currentRoute.startsWith(Screen.WELCOME.route) -> false
                 else -> true
             }
         }

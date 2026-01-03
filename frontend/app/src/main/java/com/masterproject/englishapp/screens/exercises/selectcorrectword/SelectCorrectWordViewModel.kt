@@ -8,11 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.masterproject.englishapp.data.loader.PhraseLoader
 import com.masterproject.englishapp.data.phrase.Phrase
 import com.masterproject.englishapp.event.UiEventService
-import com.masterproject.englishapp.exercises.BoolMeaningData
 import com.masterproject.englishapp.exercises.SelectCorrectWord
 import com.masterproject.englishapp.exercises.SelectCorrectWordData
 import com.masterproject.englishapp.exercises.base.ExerciseInfo
-import com.masterproject.englishapp.exercises.base.ExerciseViewModel
+import com.masterproject.englishapp.exercises.base.BaseExerciseViewModel
 import com.masterproject.englishapp.learning.selector.AdaptiveSelector
 import com.masterproject.englishapp.result.onError
 import com.masterproject.englishapp.result.onSuccess
@@ -27,10 +26,7 @@ class SelectCorrectWordViewModel @Inject constructor(
     private val phraseLoader: PhraseLoader,
     private val userContext: UserContext,
     private val uiEventService: UiEventService
-) : ViewModel(), ExerciseViewModel<SelectCorrectWordData> {
-
-    override var uiState by mutableStateOf<SelectCorrectWordData?>(null)
-        private set
+) : BaseExerciseViewModel<SelectCorrectWordData>() {
 
     override fun loadNext(info: ExerciseInfo) {
         uiState = null
@@ -38,16 +34,13 @@ class SelectCorrectWordViewModel @Inject constructor(
         viewModelScope.launch {
             val manager = SelectCorrectWord(phraseLoader)
 
-            val model = userContext.modelOrBlind()
-            val selector = AdaptiveSelector<Phrase>(model)
-
-            manager.getData(
+            val result = manager.getData(
                 learningLanguage = userContext.learningLanguage,
                 feedbackLanguage = userContext.feedbackLanguage,
-                phraseSelector = selector
+                phraseSelector = AdaptiveSelector(userContext.modelOrBlind())
             )
-                .onError { uiEventService.showError(it) }
-                .onSuccess { uiState = it }
+
+            handleResult(result, uiEventService)
         }
     }
 }

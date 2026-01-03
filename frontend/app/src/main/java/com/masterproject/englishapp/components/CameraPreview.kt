@@ -1,6 +1,7 @@
 package com.masterproject.englishapp.components
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -11,13 +12,21 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.masterproject.englishapp.vision.ImageUtils
 
 @Composable
 fun CameraPreview(
+    flashEnabled: Boolean = false,
     onFrame: (Bitmap) -> Unit,
     onPreviewSizeChanged: (width: Int, height: Int) -> Unit
 ) {
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    var camera by remember { mutableStateOf<androidx.camera.core.Camera?>(null) }
+
+    LaunchedEffect(flashEnabled) {
+        camera?.cameraControl?.enableTorch(flashEnabled)
+    }
 
     AndroidView(
         factory = { ctx ->
@@ -34,13 +43,24 @@ fun CameraPreview(
 
             analysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { image ->
                 val bitmap = image.toBitmap()
-                onFrame(bitmap)
+
+                val rotatedBitmap = if (image.imageInfo.rotationDegrees != 0) {
+                    Log.d("CameraPreview", "Bitmap was rotated by ${image.imageInfo.rotationDegrees.toFloat()} degrees!")
+                    ImageUtils.rotateBitmap(bitmap, image.imageInfo.rotationDegrees.toFloat())
+                } else {
+                    bitmap
+                }
+
+                onFrame(rotatedBitmap)
                 image.close()
             }
 
-            ProcessCameraProvider.getInstance(ctx).get().apply {
-                unbindAll()
-                bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+            try {
+                val cameraProvider = ProcessCameraProvider.getInstance(ctx).get()
+                cameraProvider.unbindAll()
+                camera = cameraProvider.bindToLifecycle(lifecycleOwner, selector, preview, analysis)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
 
             previewView

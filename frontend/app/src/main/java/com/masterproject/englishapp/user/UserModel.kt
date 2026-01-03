@@ -8,7 +8,6 @@ data class UserModel(
     val id: String,
     val name: String,
     val email: String,
-    val learningLanguage: Language,
-    val feedbackLanguage: Language,
-    val model: KnowledgeModel = BKTKnowledgeModel()
+    val preferences: UserPreferences,
+    val model: KnowledgeModel
 )

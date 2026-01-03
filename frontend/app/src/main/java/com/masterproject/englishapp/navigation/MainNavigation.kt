@@ -7,10 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.masterproject.englishapp.navigation.params.ExerciseParams
 import com.masterproject.englishapp.screens.HomeScreen
-import com.masterproject.englishapp.screens.CameraScreen
+import com.masterproject.englishapp.screens.camera.CameraScreen
 import com.masterproject.englishapp.screens.exercises.ExerciseFlowManager
 import com.masterproject.englishapp.screens.auth.login.LoginScreen
+import com.masterproject.englishapp.screens.auth.register.RegisterFlowManager
+import com.masterproject.englishapp.screens.intro.questions.QuestionFlowManager
 import com.masterproject.englishapp.screens.intro.welcome.WelcomeScreen
+import com.masterproject.englishapp.screens.lessons.videos.VideoLessonsScreen
 
 @Composable
 fun MainNavigation(
@@ -25,14 +28,22 @@ fun MainNavigation(
             WelcomeScreen(navigator)
         }
 
-        composable(Screen.HOME.route) {
-            HomeScreen(navigator)
+        composable(Screen.INTRO.route) {
+            QuestionFlowManager(navigator)
+        }
+
+        composable(Screen.REGISTER.route) {
+            RegisterFlowManager(navigator)
         }
 
         composable(Screen.LOGIN.route) {
             LoginScreen(onLoginSuccess = {
                 navigator.navigate(Screen.HOME)
             })
+        }
+
+        composable(Screen.HOME.route) {
+            HomeScreen(navigator)
         }
 
         composable(
@@ -70,6 +81,10 @@ fun MainNavigation(
 
         composable(Screen.CAMERA.route) {
             CameraScreen()
+        }
+
+        composable(Screen.VIDEOS.route) {
+            VideoLessonsScreen()
         }
     }
 }

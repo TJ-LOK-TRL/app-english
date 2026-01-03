@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Matrix
 import android.os.Build
 import android.provider.MediaStore
 import android.widget.Toast
@@ -46,6 +47,12 @@ object ImageUtils {
             (right - left).coerceAtLeast(1),
             (bottom - top).coerceAtLeast(1)
         )
+    }
+
+    fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
+        val matrix = Matrix()
+        matrix.postRotate(degrees)
+        return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
     }
 
     fun saveBitmapToGallery(context: Context, bitmap: Bitmap, displayName: String = "debug_image") {

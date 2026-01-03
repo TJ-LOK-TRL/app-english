@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.masterproject.englishapp.permissions.PermissionManager
 import com.masterproject.englishapp.recorder.AndroidAudioRecorder
+import com.masterproject.englishapp.screens.camera.ModelDebugScreen
 import com.masterproject.englishapp.screens.main.MainLandingPage
 import com.masterproject.englishapp.ui.theme.MyApplicationTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,6 +30,8 @@ class MainActivity : ComponentActivity() {
                 MainLandingPage(
                     permissionManager = permissionManager,
                 )
+
+                //ModelDebugScreen()
             }
         }
     }

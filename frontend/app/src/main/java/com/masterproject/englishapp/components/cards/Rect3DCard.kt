@@ -69,6 +69,7 @@ fun Rect3DCard(
     shape: RoundedCornerShape = RoundedCornerShape(14.dp),
     color: Color = Color.White,
     depth: Dp = 3.dp,
+    depthColor: Color? = null,
     borderWidth: Dp = 1.dp,
     borderColor: Color = Color(0xFFE0E0E0),
     onClick: () -> Unit,
@@ -76,7 +77,7 @@ fun Rect3DCard(
     faceVisible: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val bottomColor = color.copy(
+    val bottomColor = depthColor ?: color.copy(
         red = color.red * 0.85f,
         green = color.green * 0.85f,
         blue = color.blue * 0.85f

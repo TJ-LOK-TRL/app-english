@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masterproject.englishapp.data.user.UserRepository
+import com.masterproject.englishapp.data.user.mapper.toDomain
 import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.user.UserContext
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,17 +28,18 @@ class MainViewModel @Inject constructor(
 
     private fun checkSession() {
         viewModelScope.launch {
-            val uid = userContext.getCurrentUid()
-
-            if (uid != null && userContext.currentUser == null) {
-                try {
-                    val user = userRepository.loadUser(uid)
+            try {
+                val uid = userContext.getCurrentUid()
+                if (uid != null) {
+                    val user = userRepository.loadUser(uid).toDomain()
                     userContext.setUser(user)
-                } catch (e: Exception) {
-                    userContext.logout()
                 }
+            } catch (e: Exception) {
+                uiEventService.showError("Session error: ${e.localizedMessage}")
+                userContext.logout()
+            } finally {
+                isInitializing = false
             }
-            isInitializing = false
         }
     }
 

@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,21 +25,22 @@ fun Bubble(
     modifier: Modifier = Modifier,
     textModifier: Modifier = Modifier,
     backgroundColor: Color = Color.White,
+    borderWidth: Dp = 1.dp,
     borderColor: Color = AppColors.Gray300,
     textAlign: TextAlign = TextAlign.Center,
     textColor: Color = AppColors.Black700,
     fontSize: TextUnit = 16.sp,
     fontWeight: FontWeight = FontWeight.Bold,
-    padding: Dp = 12.dp
-
+    padding: Dp = 12.dp,
+    tipSize: Float = 20.0f
 ) {
-    val shape = bubbleShape(side)
+    val shape = bubbleShape(side, tipSize = tipSize)
 
     Box(
         modifier = modifier
             .background(backgroundColor, shape)
             .border(
-                BorderStroke(1.dp, borderColor),
+                BorderStroke(borderWidth, borderColor),
                 shape = shape
             )
             .padding(padding)

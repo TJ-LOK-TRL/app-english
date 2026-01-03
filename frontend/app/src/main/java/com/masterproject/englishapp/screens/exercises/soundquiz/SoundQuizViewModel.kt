@@ -5,15 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.masterproject.englishapp.data.Category
-import com.masterproject.englishapp.data.Language
 import com.masterproject.englishapp.data.loader.TokenLoader
 import com.masterproject.englishapp.data.token.AnyToken
 import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.exercises.SoundQuiz
 import com.masterproject.englishapp.exercises.SoundQuizData
 import com.masterproject.englishapp.exercises.base.ExerciseInfo
-import com.masterproject.englishapp.exercises.base.ExerciseViewModel
+import com.masterproject.englishapp.exercises.base.BaseExerciseViewModel
 import com.masterproject.englishapp.grammar.GClass
 import com.masterproject.englishapp.learning.selector.AdaptiveSelector
 import com.masterproject.englishapp.network.ApiService
@@ -32,29 +30,23 @@ class SoundQuizViewModel @Inject constructor(
     private val api: ApiService,
     private val userContext: UserContext,
     private val uiEventService: UiEventService
-) : ViewModel(), ExerciseViewModel<SoundQuizData> {
-
-    override var uiState by mutableStateOf<SoundQuizData?>(null)
-        private set
+) : BaseExerciseViewModel<SoundQuizData>() {
 
     override fun loadNext(info: ExerciseInfo) {
         uiState = null
+
         viewModelScope.launch {
-            val quiz = SoundQuiz(tokenLoader, api)
-            val model = userContext.modelOrBlind()
+            val manager = SoundQuiz(tokenLoader, api)
 
-            val rightSelector = AdaptiveSelector<AnyToken>(model)
-            val wrongSelector = RandomSelector<AnyToken>()
-
-            quiz.getData(
+            val result = manager.getData(
                 grammarClasses = setOf(GClass.NOUN),
                 categories = setOf(info.category),
                 languages = setOf(userContext.learningLanguage),
-                rightTokenSelector = rightSelector,
-                wrongTokensSelector = wrongSelector
+                rightTokenSelector = AdaptiveSelector(userContext.modelOrBlind()),
+                wrongTokensSelector = RandomSelector()
             )
-                .onError { uiEventService.showError(it) }
-                .onSuccess { uiState = it }
+
+            handleResult(result, uiEventService)
         }
     }
 }

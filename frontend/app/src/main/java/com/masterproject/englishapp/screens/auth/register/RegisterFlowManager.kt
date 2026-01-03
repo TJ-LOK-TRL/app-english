@@ -1,51 +1,60 @@
 package com.masterproject.englishapp.screens.auth.register
 
-import androidx.compose.material3.LinearProgressIndicator
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.masterproject.englishapp.R
-import com.masterproject.englishapp.components.AppIcon
 import com.masterproject.englishapp.components.animations.AnimatedStepContent
 import com.masterproject.englishapp.components.buttons.PrimaryButton
+import com.masterproject.englishapp.components.headers.ProgressHeader
 import com.masterproject.englishapp.components.loaders.LoadingScreen
+import com.masterproject.englishapp.navigation.NavigationActions
+import com.masterproject.englishapp.navigation.Screen
 import com.masterproject.englishapp.result.AppResult
-import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.utils.DummyNavigator
 import com.masterproject.englishapp.utils.Validators
 
-enum class RegisterStep { NAME, EMAIL, PASSWORD }
+enum class RegisterStep { NAME, EMAIL, PASSWORD, END }
 
 @Composable
 fun RegisterFlowManager(
+    navigator: NavigationActions,
     viewModel: RegisterViewModel = hiltViewModel(),
-    onRegisterSuccess: () -> Unit
 ) {
+    val context = LocalContext.current
+    var flowFinished by remember { mutableStateOf(false) }
+
     if (viewModel.isLoading) {
         LoadingScreen()
     } else {
         RegisterFlowContent(
+            navigator,
+            initialStep = if (flowFinished) RegisterStep.END else RegisterStep.NAME,
             onRegisterClick = { n, e, p ->
                 viewModel.register(n, e, p) { result ->
-                    if (result is AppResult.Success) {
-                        onRegisterSuccess()
+                    when (result) {
+                        is AppResult.Success -> {
+                            flowFinished = true
+                        }
+                        is AppResult.Error -> {
+                            Toast.makeText(
+                                context,
+                                "Error: ${result.error.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
             }
@@ -55,21 +64,22 @@ fun RegisterFlowManager(
 
 @Composable
 fun RegisterFlowContent(
+    navigator: NavigationActions,
+    initialStep: RegisterStep,
     onRegisterClick: (String, String, String) -> Unit
 ) {
-    var currentStep by remember { mutableStateOf(RegisterStep.NAME) }
+    var currentStep by remember(initialStep) { mutableStateOf(initialStep) }
 
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordConfirm by remember { mutableStateOf("") }
 
-    val isPasswordValid = password.length >= 6 && password == passwordConfirm
-
     val enableButton = when (currentStep) {
         RegisterStep.NAME -> name.trim().length >= 2
         RegisterStep.EMAIL -> Validators.isValidEmail(email)
         RegisterStep.PASSWORD -> password.length >= 6 && password == passwordConfirm
+        RegisterStep.END -> true
     }
 
     val progress by animateFloatAsState(
@@ -77,40 +87,22 @@ fun RegisterFlowContent(
             RegisterStep.NAME -> 0.33f
             RegisterStep.EMAIL -> 0.66f
             RegisterStep.PASSWORD -> 1.0f
+            else -> 0.0f
         },
         label = "ProgressAnimation"
     )
 
+    val showProgressHeader = when(currentStep) {
+        RegisterStep.END -> false
+        else -> true
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = {
-                    if (currentStep == RegisterStep.EMAIL) currentStep = RegisterStep.NAME
-                    else if (currentStep == RegisterStep.PASSWORD) currentStep = RegisterStep.EMAIL
-                }
-            ) {
-                AppIcon(resId = R.drawable.arrow_back, size = 20.dp, tint = AppColors.Gray700)
+        if (showProgressHeader) {
+            ProgressHeader(progress) {
+                if (currentStep == RegisterStep.EMAIL) currentStep = RegisterStep.NAME
+                else if (currentStep == RegisterStep.PASSWORD) currentStep = RegisterStep.EMAIL
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(8.dp),
-                color = AppColors.Primary,
-                trackColor = AppColors.Gray300,
-                strokeCap = StrokeCap.Round,
-                gapSize = 0.dp,
-                drawStopIndicator = { }
-            )
         }
 
         AnimatedStepContent(
@@ -133,13 +125,13 @@ fun RegisterFlowContent(
                     passwordConfirm = passwordConfirm,
                     onPasswordConfirmChange = { passwordConfirm = it }
                 )
+
+                RegisterStep.END -> RegisterEnder()
             }
         }
 
         PrimaryButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             enabled = enableButton,
             text = if (currentStep == RegisterStep.PASSWORD) "Finish" else "Continue",
             onClick = {
@@ -147,10 +139,10 @@ fun RegisterFlowContent(
                     RegisterStep.NAME -> if (name.isNotBlank()) currentStep = RegisterStep.EMAIL
                     RegisterStep.EMAIL -> if (email.contains("@")) currentStep = RegisterStep.PASSWORD
                     RegisterStep.PASSWORD -> {
-                        if (isPasswordValid) {
-                            onRegisterClick(name, email, password)
-                        }
+                        onRegisterClick(name, email, password)
+                        currentStep = RegisterStep.END
                     }
+                    RegisterStep.END -> navigator.navigate(Screen.HOME)
                 }
             }
         )
@@ -165,4 +157,4 @@ fun RegisterFlowContent(
     backgroundColor = 0xFFEEEEEE
 )
 @Composable
-fun RegisterFlowManagerPreview() = RegisterFlowContent { _, _, _ -> }
+fun RegisterFlowManagerPreview() = RegisterFlowContent(DummyNavigator, RegisterStep.NAME) { _, _, _ -> }

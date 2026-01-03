@@ -1,14 +1,35 @@
 package com.masterproject.englishapp.exercises.model
 
 sealed class ExerciseResult(
-    val message: String?
+    open val skillIds: List<String> = emptyList(),
+    open val message: String? = null
 ) {
-    data class Correct(val msg: String? = null) : ExerciseResult(msg)
-    data class Wrong(val msg: String? = null) : ExerciseResult(msg)
-    data class Skipped(val msg: String? = null) : ExerciseResult(msg)
+    data class Correct(
+        override val skillIds: List<String>,
+        override val message: String? = null
+    ) : ExerciseResult(skillIds = skillIds, message = message)
+
+    data class Wrong(
+        override val skillIds: List<String>,
+        override val message: String? = null
+    ) : ExerciseResult(skillIds = skillIds, message = message)
+
+    data class Skipped(override val message: String? = null) : ExerciseResult(message = message)
+
+    data class Error(override val message: String? = null) : ExerciseResult(message = message)
 
     companion object {
-        fun fromBool(isCorrect: Boolean): ExerciseResult =
-            if (isCorrect) Correct() else Wrong()
+        fun fromBool(
+            skillIds: List<String>,
+            isCorrect: Boolean,
+            correctMessage: String? = null,
+            wrongMessage: String? = null
+        ): ExerciseResult {
+            return if (isCorrect) {
+                Correct(skillIds = skillIds, message = correctMessage)
+            } else {
+                Wrong(skillIds = skillIds, message = wrongMessage)
+            }
+        }
     }
 }

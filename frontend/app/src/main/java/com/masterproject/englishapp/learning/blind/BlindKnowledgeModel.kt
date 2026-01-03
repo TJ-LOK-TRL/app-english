@@ -5,8 +5,6 @@ import com.masterproject.englishapp.learning.core.SkillKey
 
 class BlindKnowledgeModel : KnowledgeModel {
     override fun update(skill: SkillKey, success: Boolean) { }
-
-    override fun mastery(skill: SkillKey): Float {
-        return 0.5f
-    }
+    override fun mastery(skill: SkillKey): Float = 0.5f
+    override fun getState(): Map<SkillKey, Float> = emptyMap()
 }

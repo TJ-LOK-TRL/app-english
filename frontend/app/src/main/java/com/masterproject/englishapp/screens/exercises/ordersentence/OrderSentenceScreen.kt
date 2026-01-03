@@ -27,7 +27,7 @@ import com.masterproject.englishapp.components.AppIcon
 import com.masterproject.englishapp.data.Language
 import com.masterproject.englishapp.R
 import com.masterproject.englishapp.components.MeasuredList
-import com.masterproject.englishapp.components.animatePlacement
+import com.masterproject.englishapp.components.animations.animatePlacement
 import com.masterproject.englishapp.components.bubble.Bubble
 import com.masterproject.englishapp.components.bubble.Side
 import com.masterproject.englishapp.components.buttons.PrimaryButton
@@ -36,6 +36,8 @@ import com.masterproject.englishapp.data.phrase.Phrase
 import com.masterproject.englishapp.exercises.OrderSentenceData
 import com.masterproject.englishapp.exercises.model.ExerciseResult
 import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.utils.extractSkillIds
+
 @Composable
 fun OrderSentenceContent(
     data: OrderSentenceData,
@@ -144,6 +146,7 @@ fun OrderSentenceContent(
                 val userSentence = userWords.joinToString(" ")
                 val correctSentence = data.correctOrder.joinToString(" ")
                 val isCorrect = userWords == data.correctOrder
+                val translation = "Significado: ${data.feedbackPhrase.text}"
 
                 android.util.Log.d("DEBUG_ORDER", "--- COMPARAÇÃO ---")
                 android.util.Log.d("DEBUG_ORDER", "User:    '$userSentence'")
@@ -154,7 +157,14 @@ fun OrderSentenceContent(
                     android.util.Log.d("DEBUG_ORDER", "Aviso: Tamanhos diferentes! User: ${userWords.size} vs Correct: ${data.correctOrder.size}")
                 }
 
-                onResult(ExerciseResult.fromBool(isCorrect))
+                onResult(
+                    ExerciseResult.fromBool(
+                        skillIds = data.learningPhrase.extractSkillIds(),
+                        isCorrect = isCorrect,
+                        correctMessage = translation,
+                        wrongMessage = translation
+                    )
+                )
             }
         )
     }

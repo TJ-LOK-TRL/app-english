@@ -7,6 +7,12 @@ inline fun <T> AppResult<T>.getOrReturn(
     is AppResult.Success<T> -> data
 }
 
+fun <T> AppResult<T>?.getOrNull(): T? = when (this) {
+    is AppResult.Error -> null
+    is AppResult.Success -> data
+    null -> null
+}
+
 inline fun <T> AppResult<T>.onError(action: (String) -> Unit): AppResult<T> = apply {
     if (this is AppResult.Error) action(this.error.message)
 }

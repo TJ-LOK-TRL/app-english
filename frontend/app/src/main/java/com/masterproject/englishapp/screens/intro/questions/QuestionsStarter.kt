@@ -16,19 +16,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavOptionsBuilder
 import com.masterproject.englishapp.R
 import com.masterproject.englishapp.components.bubble.Bubble
 import com.masterproject.englishapp.components.bubble.Side
 import com.masterproject.englishapp.components.buttons.PrimaryButton
+import com.masterproject.englishapp.navigation.NavigationActions
+import com.masterproject.englishapp.navigation.Screen
 import com.masterproject.englishapp.ui.theme.AppColors
 
-@Preview(
-    name = "Xiaomi Redmi 9C",
-    device = "spec:width=360dp,height=800dp,dpi=269",
-    showSystemUi = true,
-    showBackground = true,
-    backgroundColor = 0xFFEEEEEE
-)
 @Composable
 fun QuestionsStarter() {
     Column(
@@ -61,13 +57,15 @@ fun QuestionsStarter() {
                 tint = Color.Unspecified
             )
         }
-
-        Spacer(modifier = Modifier.weight(1.0f))
-
-        PrimaryButton(
-            "Continue",
-            onClick = { },
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
+
+@Preview(
+    name = "Xiaomi Redmi 9C",
+    device = "spec:width=360dp,height=800dp,dpi=269",
+    showSystemUi = true,
+    showBackground = true,
+    backgroundColor = 0xFFEEEEEE
+)
+@Composable
+fun QuestionStarterPreview() = QuestionsStarter()

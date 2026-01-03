@@ -1,8 +1,7 @@
-package com.masterproject.englishapp.vision
+package com.masterproject.englishapp.vision.objectrecognition
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
 import org.tensorflow.lite.support.image.TensorImage
@@ -58,9 +57,3 @@ class ObjectRecognition(context: Context) {
         detector?.close()
     }
 }
-
-data class ObjectDetectionResult(
-    val label: String,
-    val confidence: Float,
-    val boundingBox: RectF
-)

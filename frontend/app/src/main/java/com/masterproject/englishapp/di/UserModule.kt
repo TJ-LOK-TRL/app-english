@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.masterproject.englishapp.auth.firebase.FirebaseAuthService
 import com.masterproject.englishapp.data.user.UserRepository
 import com.masterproject.englishapp.user.UserContext
+import com.masterproject.englishapp.user.UserPreferencesStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,8 +16,11 @@ import javax.inject.Singleton
 class UserModule {
     @Provides
     @Singleton
-    fun provideUserContext(authService: FirebaseAuthService): UserContext =
-        UserContext(authService)
+    fun provideUserContext(
+        authService: FirebaseAuthService,
+        userPreferencesStore: UserPreferencesStore,
+        userRepository: UserRepository
+    ): UserContext = UserContext(authService, userPreferencesStore, userRepository)
 
     @Provides
     @Singleton

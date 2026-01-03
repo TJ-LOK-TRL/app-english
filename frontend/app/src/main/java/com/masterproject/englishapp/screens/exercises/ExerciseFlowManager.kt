@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.masterproject.englishapp.components.FeedbackBottomBar
 import com.masterproject.englishapp.components.animations.AnimatedStepContent
 import com.masterproject.englishapp.components.headers.ExerciseHeader
@@ -25,6 +27,7 @@ fun ExerciseFlowManager(
     navigator: Navigator,
     exerciseTypes: Set<ExerciseType> = emptySet(),
     categories: Set<Category> = emptySet(),
+    sessionViewModel: ExerciseSessionViewModel = hiltViewModel()
 ) {
     val allowedTypes = exerciseTypes.ifEmpty { ExerciseType.entries.toSet() }
     val allowedCategories = categories.ifEmpty { Category.entries.toSet() }
@@ -47,71 +50,111 @@ fun ExerciseFlowManager(
         return Text("No exercises available")
     }
 
+    val startTime = remember { System.currentTimeMillis() }
+    val answersHistory = remember { mutableStateListOf<Boolean>() }
+    var isFinished by remember { mutableStateOf(false) }
+
+    val formattedTime = remember(isFinished) {
+        if (!isFinished) "0:00"
+        else {
+            val totalSeconds = (System.currentTimeMillis() - startTime) / 1000
+            val minutes = totalSeconds / 60
+            val seconds = totalSeconds % 60
+            "%d:%02d".format(minutes, seconds)
+        }
+    }
+
+    val accuracyScore = remember(isFinished) {
+        if (answersHistory.isEmpty()) 0
+        else {
+            val correctOnes = answersHistory.count { it }
+            (correctOnes * 100) / answersHistory.size
+        }
+    }
+
     var feedbackState by remember { mutableStateOf<ExerciseResult?>(null) }
 
-    var currentStep by remember { mutableIntStateOf(1) }
     var questionId by remember { mutableLongStateOf(System.currentTimeMillis()) }
-
     val category = remember(questionId) { allowedCategories.random() }
 
-    val totalSteps = 12
+    var currentStep by remember { mutableIntStateOf(0) }
+    val totalSteps = 11
 
     val next = { incrementStep: Boolean ->
         if (incrementStep) {
-            if (currentStep < totalSteps) currentStep++
-            else { /* Fim */ }
+            if (currentStep < totalSteps) {
+                currentStep++
+                questionId = System.currentTimeMillis()
+                currentExercise = availableExercises.random()
+            } else {
+                sessionViewModel.saveFinalProgress()
+                isFinished = true
+            }
+        } else {
+            questionId = System.currentTimeMillis()
+            currentExercise = availableExercises.random()
         }
-
-        questionId = System.currentTimeMillis()
-        currentExercise = availableExercises.random()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            // Header
-            ExerciseHeader(
-                currentStep = currentStep,
-                totalSteps = totalSteps,
-                onCloseClick = { navigator.controller.navigateUp() },
-                onMoreClick = { },
-                trackBarColor = AppColors.Primary,
-                trackBackgroundColor = AppColors.Gray400
-            )
+    if (isFinished) {
+        ExerciseEndScreen(
+            timeElapsed = formattedTime,
+            accuracy = accuracyScore,
+            onEndClick = { navigator.controller.navigateUp() }
+        )
+    } else {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                // Header
+                ExerciseHeader(
+                    currentStep = currentStep,
+                    totalSteps = totalSteps,
+                    onCloseClick = { navigator.controller.navigateUp() },
+                    onMoreClick = { },
+                    trackBarColor = AppColors.Primary,
+                    trackBackgroundColor = AppColors.Gray400
+                )
 
-            // Exercise screen
-            AnimatedStepContent(
-                targetState = questionId,
-                modifier = Modifier.weight(1f)
-            ) { _ ->
-                currentExercise?.screen(ExerciseInfo(category)) { result ->
-                    when (result) {
-                        is ExerciseResult.Correct -> feedbackState = result
-                        is ExerciseResult.Skipped -> next(false)
-                        is ExerciseResult.Wrong -> feedbackState = result
+                // Exercise screen
+                AnimatedStepContent(
+                    targetState = questionId,
+                    modifier = Modifier.weight(1f)
+                ) { targetId ->
+                    val exerciseForStep = remember(targetId) { currentExercise }
+
+                    exerciseForStep?.screen(ExerciseInfo(category)) { result ->
+                        when (result) {
+                            is ExerciseResult.Correct -> feedbackState = result
+                            is ExerciseResult.Skipped -> next(false)
+                            is ExerciseResult.Wrong -> feedbackState = result
+                            is ExerciseResult.Error -> next(false)
+                        }
                     }
                 }
             }
-        }
 
-        AnimatedVisibility(
-            visible = feedbackState != null,
-            enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it }),
-            modifier = Modifier.align(Alignment.BottomCenter)
-        ) {
-            feedbackState?.let { result ->
-                FeedbackBottomBar(
-                    title = if (result is ExerciseResult.Correct) "Good! Meaning:" else "Incorrect",
-                    message = result.message ?: "...",
-                    isCorrect = result is ExerciseResult.Correct,
-                    onContinue = {
-                        feedbackState = null
-                        next(true)
-                    }
-                )
+            AnimatedVisibility(
+                visible = feedbackState != null,
+                enter = slideInVertically(initialOffsetY = { it }),
+                exit = slideOutVertically(targetOffsetY = { it }),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                feedbackState?.let { result ->
+                    FeedbackBottomBar(
+                        title = if (result is ExerciseResult.Correct) "Good!" else "Incorrect",
+                        message = result.message ?: "",
+                        isCorrect = result is ExerciseResult.Correct,
+                        onContinue = {
+                            sessionViewModel.updateKnowledge(result)
+                            answersHistory.add(result is ExerciseResult.Correct)
+                            feedbackState = null
+                            next(true)
+                        }
+                    )
+                }
             }
         }
     }

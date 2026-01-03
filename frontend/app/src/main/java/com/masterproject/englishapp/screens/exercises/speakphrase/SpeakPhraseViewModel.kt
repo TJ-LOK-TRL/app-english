@@ -11,7 +11,7 @@ import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.exercises.SpeakPhrase
 import com.masterproject.englishapp.exercises.SpeakPhraseData
 import com.masterproject.englishapp.exercises.base.ExerciseInfo
-import com.masterproject.englishapp.exercises.base.ExerciseViewModel
+import com.masterproject.englishapp.exercises.base.BaseExerciseViewModel
 import com.masterproject.englishapp.learning.selector.AdaptiveSelector
 import com.masterproject.englishapp.recorder.AudioRecorder
 import com.masterproject.englishapp.result.onError
@@ -28,27 +28,22 @@ class SpeakPhraseViewModel @Inject constructor(
     private val recorder: AudioRecorder,
     private val userContext: UserContext,
     private val uiEventService: UiEventService
-) : ViewModel(), ExerciseViewModel<SpeakPhraseData> {
-
-    override var uiState by mutableStateOf<SpeakPhraseData?>(null)
-        private set
+) : BaseExerciseViewModel<SpeakPhraseData>() {
 
     override fun loadNext(info: ExerciseInfo) {
         uiState = null
+
         viewModelScope.launch {
             val manager = SpeakPhrase(phraseLoader)
-            val model = userContext.modelOrBlind()
 
-            val selector = AdaptiveSelector<Phrase>(model)
-
-            manager.getData(
+            val result = manager.getData(
                 learningLanguage = userContext.learningLanguage,
                 feedbackLanguage = userContext.feedbackLanguage,
-                phraseSelector = selector,
+                phraseSelector = AdaptiveSelector(userContext.modelOrBlind()),
                 recorder = recorder
             )
-                .onError { uiEventService.showError(it) }
-                .onSuccess { uiState = it }
+
+            handleResult(result, uiEventService)
         }
     }
 }

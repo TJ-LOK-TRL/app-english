@@ -35,7 +35,7 @@ enum class ExerciseKind(
     SOUND_QUIZ(
         supportedTypes = setOf(ExerciseType.LISTENING),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<SoundQuizData, SoundQuizViewModel>(info) { data ->
+            ExerciseBaseWrapper<SoundQuizData, SoundQuizViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 SoundQuizContent(data, onResult)
             }
         }
@@ -44,7 +44,7 @@ enum class ExerciseKind(
     BOOL_MEANING(
         supportedTypes = setOf(ExerciseType.COMPREHENSION),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<BoolMeaningData, BoolMeaningViewModel>(info) { data ->
+            ExerciseBaseWrapper<BoolMeaningData, BoolMeaningViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 BoolMeaningContent(data, onResult)
             }
         }
@@ -53,7 +53,7 @@ enum class ExerciseKind(
     ORDER_SENTENCE(
         supportedTypes = setOf(ExerciseType.WRITE),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<OrderSentenceData, OrderSentenceViewModel>(info) { data ->
+            ExerciseBaseWrapper<OrderSentenceData, OrderSentenceViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 OrderSentenceContent(data, onResult)
             }
         }
@@ -62,7 +62,7 @@ enum class ExerciseKind(
     SELECT_CORRECT_WORD(
         supportedTypes = setOf(ExerciseType.WRITE, ExerciseType.COMPREHENSION),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<SelectCorrectWordData, SelectCorrectWordViewModel>(info) { data ->
+            ExerciseBaseWrapper<SelectCorrectWordData, SelectCorrectWordViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 SelectCorrectWordContent(data, onResult)
             }
         }
@@ -71,7 +71,7 @@ enum class ExerciseKind(
     SOUND_QUIZ_PHRASE(
         supportedTypes = setOf(ExerciseType.LISTENING),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<SoundQuizPhraseData, SoundQuizPhraseViewModel>(info) { data ->
+            ExerciseBaseWrapper<SoundQuizPhraseData, SoundQuizPhraseViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 SoundQuizPhraseContent(data, onResult)
             }
         }
@@ -80,7 +80,7 @@ enum class ExerciseKind(
     SPEAK_PHRASE(
         supportedTypes = setOf(ExerciseType.SPEAK),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<SpeakPhraseData, SpeakPhraseViewModel>(info) { data ->
+            ExerciseBaseWrapper<SpeakPhraseData, SpeakPhraseViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 SpeakPhraseContent(data, onResult)
             }
         }
@@ -89,7 +89,7 @@ enum class ExerciseKind(
     SPEAK_WORD(
         supportedTypes = setOf(ExerciseType.SPEAK),
         screen = { info, onResult ->
-            ExerciseBaseWrapper<SpeakTokenData, SpeakWordViewModel>(info) { data ->
+            ExerciseBaseWrapper<SpeakTokenData, SpeakWordViewModel>(exerciseInfo = info, onResult = onResult) { data ->
                 SpeakWordContent(data, onResult)
             }
         }

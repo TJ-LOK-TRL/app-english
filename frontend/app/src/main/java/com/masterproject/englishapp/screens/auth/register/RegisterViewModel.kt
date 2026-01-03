@@ -5,12 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.masterproject.englishapp.data.Language
 import com.masterproject.englishapp.data.user.UserRepository
+import com.masterproject.englishapp.data.user.mapper.toEntity
+import com.masterproject.englishapp.learning.bkt.BKTKnowledgeModel
 import com.masterproject.englishapp.result.AppError
 import com.masterproject.englishapp.result.AppResult
 import com.masterproject.englishapp.user.UserContext
 import com.masterproject.englishapp.user.UserModel
+import com.masterproject.englishapp.user.UserPreferencesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
@@ -19,6 +21,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
+    private val userPreferencesStore: UserPreferencesStore,
     private val userRepository: UserRepository,
     private val userContext: UserContext
 ) : ViewModel() {
@@ -39,12 +42,12 @@ class RegisterViewModel @Inject constructor(
                         id = uid,
                         name = name,
                         email = email,
-                        learningLanguage = Language.EN,
-                        feedbackLanguage = Language.PT
+                        preferences = userPreferencesStore.toDataModel(),
+                        model = BKTKnowledgeModel()
                     )
 
                     // Save in the storage
-                    userRepository.createUser(uid, newUser)
+                    userRepository.createUser(uid, newUser.toEntity())
 
                     // Set actual user
                     userContext.setUser(newUser)

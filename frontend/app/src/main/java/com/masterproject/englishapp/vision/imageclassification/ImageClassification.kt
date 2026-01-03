@@ -1,4 +1,4 @@
-package com.masterproject.englishapp.vision
+package com.masterproject.englishapp.vision.imageclassification
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -52,8 +52,3 @@ class ImageClassification(context: Context) {
         classifier?.close()
     }
 }
-
-data class ImageClassificationResult(
-    val label: String,
-    val confidence: Float
-)

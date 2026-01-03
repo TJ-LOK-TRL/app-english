@@ -10,7 +10,6 @@ import com.masterproject.englishapp.selector.Selector
 import kotlin.collections.filter
 import kotlin.collections.firstOrNull
 import kotlin.collections.ifEmpty
-import kotlin.collections.random
 
 class SelectCorrectWord(
     val phraseLoader: PhraseLoader

@@ -23,6 +23,7 @@ import com.masterproject.englishapp.components.bubble.Bubble
 import com.masterproject.englishapp.components.bubble.Side
 import com.masterproject.englishapp.components.cards.Rect3DCard
 import com.masterproject.englishapp.data.phrase.Phrase
+import com.masterproject.englishapp.utils.extractSkillIds
 import com.masterproject.englishapp.exercises.BoolMeaningData
 import com.masterproject.englishapp.exercises.model.ExerciseResult
 import com.masterproject.englishapp.ui.theme.AppColors
@@ -89,7 +90,16 @@ fun BoolMeaningContent(
             Rect3DCard(
                 modifier = Modifier.weight(1f),
                 contentPadding = 18.dp,
-                onClick = { onResult(ExerciseResult.fromBool(data.isCorrectAnswer)) }
+                onClick = {
+                    onResult(
+                        ExerciseResult.fromBool(
+                            skillIds = data.learningPhrase.extractSkillIds(),
+                            isCorrect = data.isCorrectAnswer,
+                            correctMessage = "Significado: ${data.feedbackPhrase.text}",
+                            wrongMessage = "Significado: ${data.feedbackPhrase.text}"
+                        )
+                    )
+                }
             ) {
                 Text(
                     text = "Verdadeiro",
@@ -101,7 +111,16 @@ fun BoolMeaningContent(
             Rect3DCard(
                 modifier = Modifier.weight(1f),
                 contentPadding = 18.dp,
-                onClick = { onResult(ExerciseResult.fromBool(!data.isCorrectAnswer)) }
+                onClick = {
+                    onResult(
+                        ExerciseResult.fromBool(
+                            skillIds = data.learningPhrase.extractSkillIds(),
+                            isCorrect = !data.isCorrectAnswer,
+                            correctMessage = "Significado: ${data.feedbackPhrase.text}",
+                            wrongMessage = "Significado: ${data.feedbackPhrase.text}"
+                        )
+                    )
+                }
             ) {
                 Text(
                     text = "Falso",

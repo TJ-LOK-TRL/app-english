@@ -28,6 +28,7 @@ fun Circular3DButton(
     depth: Dp = 3.dp,
     contentOffsetX: Dp = 0.dp,
     contentOffsetY: Dp = 0.dp,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
@@ -37,6 +38,7 @@ fun Circular3DButton(
         modifier = modifier
             .size(size)
             .clickable(
+                enabled = enabled,
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick

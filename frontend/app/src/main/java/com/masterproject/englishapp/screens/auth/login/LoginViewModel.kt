@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.masterproject.englishapp.data.user.UserRepository
+import com.masterproject.englishapp.data.user.mapper.toDomain
 import com.masterproject.englishapp.result.AppError
 import com.masterproject.englishapp.result.AppResult
 import com.masterproject.englishapp.user.UserContext
@@ -34,6 +35,7 @@ class LoginViewModel @Inject constructor(
 
                     // Load user data
                     val userModel = userRepository.loadUser(uid)
+                        .toDomain()
 
                     // Set actual user in the app context
                     userContext.setUser(userModel)

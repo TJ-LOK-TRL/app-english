@@ -1,9 +1,6 @@
 package com.masterproject.englishapp.screens
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,13 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.masterproject.englishapp.components.animatePlacement
-import com.masterproject.englishapp.components.rememberTransferController
-import kotlinx.coroutines.delay
+import com.masterproject.englishapp.components.animations.animatePlacement
+import com.masterproject.englishapp.components.animations.rememberTransferController
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch

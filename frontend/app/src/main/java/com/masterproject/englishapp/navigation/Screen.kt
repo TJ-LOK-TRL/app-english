@@ -17,18 +17,22 @@ enum class Screen(
     val requiredPermissions: List<AppPermission> = emptyList()
 ) {
     WELCOME("welcome", "Welcome"),
-    INTRO("introduction", "Introduction"),
+    INTRO("introduction", "Introduction Questions"),
     HOME("home", "English Learning"),
     RECORDER("recorder", "Voice Recorder", AppPermission.RECORD_AUDIO),
     PRACTICE("practice", "Practice Exercises"),
     PROFILE("profile", "My Profile"),
     CHAT("chat", "AI Chat"),
     CAMERA("camera", "Object Camera", AppPermission.CAMERA),
+    VIDEOS("videos", "Video Lessoes"),
+    REGISTER("register", "Sign Up"),
     LOGIN("login", "Login");
 
     companion object {
         fun fromRoute(route: String?): Screen {
             return when (route?.substringBefore("/")) {
+                WELCOME.route -> WELCOME
+                INTRO.route -> INTRO
                 HOME.route -> HOME
                 RECORDER.route -> RECORDER
                 PRACTICE.route -> PRACTICE
@@ -36,6 +40,8 @@ enum class Screen(
                 CHAT.route -> CHAT
                 CAMERA.route -> CAMERA
                 LOGIN.route -> LOGIN
+                REGISTER.route -> REGISTER
+                VIDEOS.route -> VIDEOS
                 null -> HOME
                 else -> throw IllegalArgumentException("Route $route not recognized")
             }
