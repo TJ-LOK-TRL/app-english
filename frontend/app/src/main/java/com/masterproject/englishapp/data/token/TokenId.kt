@@ -1,6 +1,6 @@
 package com.masterproject.englishapp.data.token
 
-import com.masterproject.englishapp.data.Category
+import com.masterproject.englishapp.grammar.Category
 import com.masterproject.englishapp.grammar.GClass
 
 data class TokenId(

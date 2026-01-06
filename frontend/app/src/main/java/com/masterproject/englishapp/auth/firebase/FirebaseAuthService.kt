@@ -35,4 +35,13 @@ class FirebaseAuthService(
 
     override fun getCurrentUserId(): String? =
         firebaseAuth.currentUser?.uid
+
+    override suspend fun sendPasswordReset(email: String) {
+        firebaseAuth.sendPasswordResetEmail(email).await()
+    }
+
+    override suspend fun deleteCurrentUser() {
+        firebaseAuth.currentUser?.delete()?.await()
+            ?: throw IllegalStateException("No user logged in to delete")
+    }
 }

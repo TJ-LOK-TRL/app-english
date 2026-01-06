@@ -1,215 +1,218 @@
 package com.masterproject.englishapp.screens.camera
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.masterproject.englishapp.audio.playPcmAudio
 import com.masterproject.englishapp.components.CameraPreview
-import com.masterproject.englishapp.components.OverlayLayer
+import com.masterproject.englishapp.components.overlays.OverlayLayer
 import com.masterproject.englishapp.R
+import com.masterproject.englishapp.components.AppIcon
+import com.masterproject.englishapp.components.overlays.OverlayShape
+import com.masterproject.englishapp.components.buttons.Circular3DButton
+import com.masterproject.englishapp.components.overlays.DrawingOverlay
+import com.masterproject.englishapp.ui.theme.AppColors
 
 @Composable
 fun CameraScreen(
-    cameraViewModel: CameraViewModel = hiltViewModel()
+    cameraViewModel: CameraViewModel = hiltViewModel(),
+    onBack: () -> Unit,
 ) {
-    var lastAnalysisTime by remember { mutableLongStateOf(0L) }
     val overlays by cameraViewModel.overlays.collectAsState()
     val audioData by cameraViewModel.audioToPlay.collectAsState()
-    var containerSize by remember { mutableStateOf(IntSize.Zero) }
 
     LaunchedEffect(audioData) {
         audioData?.let { bytes ->
-            Log.d("CameraViewModel", "Playing audio")
             playPcmAudio(bytes, 24000)
             cameraViewModel.clearAudio()
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .onGloballyPositioned { coordinates ->
-                containerSize = coordinates.size
-            }
-    ) {
-        CameraPreview(
-            flashEnabled = true,
-            onFrame = { bitmap ->
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastAnalysisTime >= cameraViewModel.analysisIntervalMs) {
-                    lastAnalysisTime = currentTime
-                    cameraViewModel.onFrameCaptured(bitmap)
-                }
-            },
-            onPreviewSizeChanged = { w, h ->
-                cameraViewModel.updatePreviewSize(w, h)
-            }
-        )
-        OverlayLayer(shapes = overlays, containerSize = containerSize)
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) {
-            // Buttons later maybe
-        }
-    }
+    CameraScreenContent(
+        overlays = overlays,
+        analysisInterval = cameraViewModel.analysisIntervalMs,
+        onBack = onBack,
+        onManualCrop = { bitmap, points, onFinished -> cameraViewModel.onManualCrop(bitmap, points, onFinished) },
+        onFrameCaptured = { cameraViewModel.onFrameCaptured(it) },
+        onPreviewSizeChanged = { w, h -> cameraViewModel.updatePreviewSize(w, h) },
+        onClearOverlays = { cameraViewModel.clearAllOverlays() }
+    )
 }
 
 @Composable
-fun ModelDebugScreen(viewModel: CameraViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val debugInfo by viewModel.debugInfo.collectAsState()
-    val overlays by viewModel.overlays.collectAsState()
+fun CameraScreenContent(
+    overlays: List<OverlayShape> = emptyList(),
+    analysisInterval: Long = 500L,
+    onBack: () -> Unit = {},
+    onManualCrop: (Bitmap, List<Offset>, () -> Unit) -> Unit = { _, _, _ -> },
+    onFrameCaptured: (Bitmap) -> Unit = {},
+    onPreviewSizeChanged: (Int, Int) -> Unit = { _, _ -> },
+    onClearOverlays: () -> Unit = {}
+) {
+    var lastAnalysisTime by remember { mutableLongStateOf(0L) }
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
+    var isDrawingMode by remember { mutableStateOf(false) }
+    var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var flashEnabled by remember { mutableStateOf(false) }
+    var isProcessingManual by remember { mutableStateOf(false) }
 
-    val testImages = remember {
-        listOf(R.drawable.img_dog_1, R.drawable.img_banana_1, R.drawable.img_woman_yoga, R.drawable.img_child_girl_1)
-    }
-    var currentImageIndex by remember { mutableIntStateOf(0) }
-
-    val bitmap = remember(currentImageIndex) {
-        BitmapFactory.decodeResource(context.resources, testImages[currentImageIndex])
-            .copy(Bitmap.Config.ARGB_8888, true)
-    }
-
-    val bitmapContainerSize = remember(bitmap) {
-        IntSize(bitmap.width, bitmap.height)
-    }
-
-    LaunchedEffect(bitmap) {
-        viewModel.updatePreviewSize(bitmap.width, bitmap.height)
-        viewModel.onFrameCaptured(bitmap)
-    }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-            .onGloballyPositioned { coordinates ->
-                containerSize = coordinates.size
-            }
+            .background(Color.Black)
     ) {
-        Text("AR Model Lab (Pixel-Perfect Mode)", style = MaterialTheme.typography.headlineMedium)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 20.dp, end = 20.dp, top = 65.dp, bottom = 128.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .border(width = 1.dp, color = AppColors.Primary, shape = RoundedCornerShape(16.dp))
+                .onGloballyPositioned { coordinates ->
+                    containerSize = coordinates.size
+                }
+        ) {
+            CameraPreview(
+                flashEnabled = flashEnabled,
+                onFrame = { bitmap ->
+                    if (!isDrawingMode) {
+                        currentBitmap = bitmap
+                        val currentTime = System.currentTimeMillis()
+                        if (currentTime - lastAnalysisTime >= analysisInterval) {
+                            lastAnalysisTime = currentTime
+                            onFrameCaptured(bitmap)
+                        }
+                    }
+                },
+                onPreviewSizeChanged = onPreviewSizeChanged
+            )
 
-        Button(onClick = { currentImageIndex = (currentImageIndex + 1) % testImages.size }) {
-            Text("Próxima Imagem")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- 1. IMAGEM ORIGINAL COM CLASSIFICAÇÃO GLOBAL ---
-        Text("1. Original & Global Label", fontWeight = FontWeight.Bold)
-        Card(modifier = Modifier.padding(vertical = 8.dp)) {
-            Box {
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.wrapContentSize(), // Mantém o tamanho original
-                    contentScale = ContentScale.None
-                )
+            Box(modifier = Modifier.padding(12.dp).align(Alignment.TopEnd)) {
                 Text(
-                    text = "Global: ${debugInfo?.fullImageLabel}",
-                    modifier = Modifier.align(Alignment.BottomStart).background(Color.Black.copy(0.7f)).padding(8.dp),
-                    color = Color.White
+                    text = if (isDrawingMode) "MODE: MANUAL DRAW" else "MODE: AUTO SCAN",
+                    color = if (isDrawingMode) Color.Yellow else Color.Green,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.background(Color.Black.copy(0.5f), RoundedCornerShape(4.dp)).padding(4.dp)
                 )
+            }
+
+            if (!isDrawingMode) {
+                OverlayLayer(shapes = overlays, containerSize = containerSize)
+            } else {
+                DrawingOverlay { points ->
+                    if (isProcessingManual) return@DrawingOverlay
+                    isProcessingManual = true
+                    currentBitmap?.let { bitmap ->
+                        onManualCrop(bitmap, points) {
+                            isDrawingMode = false
+                            isProcessingManual = false
+                        }
+                    }
+                    Log.d("DRAW", "Círculo fechado com ${points.size} pontos!")
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- 2. DETECÇÃO COM SCROLL HORIZONTAL (Se a imagem for larga) ---
-        Text("2. Detection & Overlays (Scroll Horizontal se necessário)", fontWeight = FontWeight.Bold)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()) // Permite ver imagens largas
-                .background(Color.DarkGray)
+                .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                .align(Alignment.TopStart)
         ) {
-            Box(
-                modifier = Modifier.size(
-                    width = with(LocalDensity.current) { bitmap.width.toDp() },
-                    height = with(LocalDensity.current) { bitmap.height.toDp() }
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.None
-                )
-                // O Overlay agora deve bater certo pois o container tem o tamanho exato do bitmap
-                OverlayLayer(shapes = overlays, containerSize = bitmapContainerSize)
-            }
-        }
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    AppIcon(resId = R.drawable.ic_arrow_left, tint = Color.White)
+                }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- 3. CROPS REAIS ENVIADOS AO CLASSIFICADOR ---
-        Text("3. Model's Eye (Crops)", fontWeight = FontWeight.Bold)
-
-        debugInfo?.crops?.forEach { (cropBitmap, detection) ->
-            Card(
-                modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Mostra o Crop com Aspect Ratio Original
-                        Image(
-                            bitmap = cropBitmap.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .height(120.dp) // Altura fixa, largura ajusta pelo aspect
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.LightGray),
-                            contentScale = ContentScale.Fit
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    IconButton(
+                        onClick = { flashEnabled = !flashEnabled },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        AppIcon(
+                            resId = if (flashEnabled) R.drawable.ic_lightbulb_on else R.drawable.ic_light_off,
+                            tint = if (flashEnabled) Color.Yellow else Color.White
                         )
+                    }
 
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
-                            Text("Classified as: ${detection.label}", fontWeight = FontWeight.Bold, color = Color.Blue)
-                            Text("Conf: ${(detection.classificationConfidence * 100).toInt()}%")
-                        }
+                    IconButton(
+                        onClick = onClearOverlays,
+                        modifier = Modifier.size(26.dp),
+                        shape = CircleShape
+                    ) {
+                        AppIcon(resId = R.drawable.ic_trash, tint = Color.White)
                     }
                 }
             }
         }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 30.dp)
+        ) {
+            Circular3DButton(
+                onClick = { isDrawingMode = !isDrawingMode },
+                color = AppColors.Primary,
+                size = 70.dp
+            ) {
+                AppIcon(resId = R.drawable.ic_finger_draw3, tint = Color.White, size = 48.dp)
+            }
+        }
+
+        if (isProcessingManual) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.CircularProgressIndicator(color = Color.Yellow)
+            }
+        }
     }
+}
+
+@Preview(
+    name = "Xiaomi Redmi 9C",
+    device = "spec:width=360dp,height=800dp,dpi=269",
+    showSystemUi = true,
+    showBackground = true,
+    backgroundColor = 0xFFEEEEEE
+)
+@Composable
+fun CameraScreenPreview() {
+    CameraScreenContent(
+        overlays = emptyList(),
+        onBack = {},
+    )
 }

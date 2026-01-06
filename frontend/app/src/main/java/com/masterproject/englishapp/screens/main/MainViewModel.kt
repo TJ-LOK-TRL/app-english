@@ -8,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.masterproject.englishapp.data.user.UserRepository
 import com.masterproject.englishapp.data.user.mapper.toDomain
 import com.masterproject.englishapp.event.UiEventService
+import com.masterproject.englishapp.navigation.Screen
 import com.masterproject.englishapp.user.UserContext
+import com.masterproject.englishapp.user.UserPreferencesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,9 +19,13 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val userContext: UserContext,
     private val userRepository: UserRepository,
+    val userPreferencesStore: UserPreferencesStore,
     val uiEventService: UiEventService
 ) : ViewModel() {
     var isInitializing by mutableStateOf(true)
+        private set
+
+    var lunchedScreen by mutableStateOf<Screen?>(null)
         private set
 
     init {
@@ -41,6 +47,14 @@ class MainViewModel @Inject constructor(
                 isInitializing = false
             }
         }
+    }
+
+    fun launchScreen(screen: Screen) {
+        lunchedScreen = screen
+    }
+
+    fun clearLaunchedScreen() {
+        lunchedScreen = null
     }
 
     val isLoggedIn: Boolean get() = userContext.isLoggedIn()

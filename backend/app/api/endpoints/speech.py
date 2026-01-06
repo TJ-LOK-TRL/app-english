@@ -9,6 +9,7 @@ from services.asr.whisper import WhisperASRService
 from services.pronunciation.pronunciation_evaluator import PronunciationEvaluator
 from services.chat.gemini import GeminiChatService
 from services.tutor.interactive_chat_service import InteractiveChatService
+from services.tutor.contextual_lesson_service import ContextualLessonService
 from utils.audio_utils import wav_to_base64
 from utils.api_utils import read_audio_file
 
@@ -17,12 +18,13 @@ router = APIRouter()
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print('Using:', device)
 
+# Services
 tts_service = KokoroTTSService(device)
 asr_service = WhisperASRService('tiny', device)
 pronunciation_evaluator = PronunciationEvaluator(tts_service)
-
 gemini_chat_service = GeminiChatService(os.getenv('GEMINI_API_KEY'))
 interactive_chat_service = InteractiveChatService(gemini_chat_service)
+lesson_service = ContextualLessonService(gemini_chat_service)
 
 @router.post('/evaluate-pronunciation')
 async def pronunciation_check(audio: UploadFile = File(...), target_text: str = Form(...)):
@@ -125,5 +127,58 @@ async def converse(
         'pred_dur': pred_dur.tolist()
     })
     
+@router.post('/chat')
+async def chat(
+    text: str = Form(...),
+    lang: str = Form(Lang.EN_US),
+    voice: str = Form(KokoroVoice.AMERICAN_FEMALE_HEART),
+    speed: float = Form(1),
+):
+    """
+    Receives text input, gets AI response, optionally generates TTS.
+    Returns JSON ready for TalkingHead (with or without audio).
+    """
+    # Get a response
+    response = interactive_chat_service.chat('0', text)
+    print('Gemini response was:', response)
+
+    # Run TTS on response
+    wav, sr, tokens_info, pred_dur = tts_service.synthesize(
+        text=response,
+        lang=lang,
+        speaker=voice,
+        speed=speed
+    )
+
+    # Convert WAV to base64
+    audio_b64 = wav_to_base64(wav, sr)
     
+    print({
+        'text': response,
+        'tokens': tokens_info,
+        'pred_dur': pred_dur.tolist()
+    })
     
+    # 5. Return JSON ready
+    return JSONResponse({
+        'text': response,
+        'audio': audio_b64,
+        'tokens': tokens_info,
+        'pred_dur': pred_dur.tolist()
+    })
+    
+@router.post('/generate-lesson')
+async def generate_lesson(context: str = Form(...)):
+    """
+    Generate a lesson based on context (GPS, Location, etc.)
+    Returns: context_title and a list of items (original, translated, explanation)
+    """
+    try:
+        print('Generate lesson...')
+        # lesson_service already uses generate_parsed to return the Pydantic object
+        lesson = lesson_service.generate_lesson(context)
+        return lesson  # FastAPI automatically converts Pydantic to JSON :)
+    except Exception as e:
+        print('Error generating lesson:', str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))

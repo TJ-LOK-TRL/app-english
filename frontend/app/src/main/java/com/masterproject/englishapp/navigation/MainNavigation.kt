@@ -2,17 +2,22 @@
 package com.masterproject.englishapp.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.masterproject.englishapp.navigation.params.ExerciseParams
 import com.masterproject.englishapp.screens.HomeScreen
+import com.masterproject.englishapp.screens.account.AccountFlowManager
 import com.masterproject.englishapp.screens.camera.CameraScreen
 import com.masterproject.englishapp.screens.exercises.ExerciseFlowManager
 import com.masterproject.englishapp.screens.auth.login.LoginScreen
 import com.masterproject.englishapp.screens.auth.register.RegisterFlowManager
+import com.masterproject.englishapp.screens.avatar.AvatarScreen
+import com.masterproject.englishapp.screens.chatbot.ChatBotScreen
 import com.masterproject.englishapp.screens.intro.questions.QuestionFlowManager
 import com.masterproject.englishapp.screens.intro.welcome.WelcomeScreen
+import com.masterproject.englishapp.screens.lessons.content.LessonFlowManager
 import com.masterproject.englishapp.screens.lessons.videos.VideoLessonsScreen
 
 @Composable
@@ -51,13 +56,11 @@ fun MainNavigation(
             arguments = listOf(
                 navArgument("types") { defaultValue = "" },
                 navArgument("categories") { defaultValue = "" },
-                navArgument("language") { defaultValue = "en" }
             )
         ) { backStackEntry ->
             val params = ExerciseParams.parseQuery(
                 types = backStackEntry.arguments?.getString("types"),
                 categories = backStackEntry.arguments?.getString("categories"),
-                language = backStackEntry.arguments?.getString("language")
             )
 
             ExerciseFlowManager(
@@ -67,24 +70,37 @@ fun MainNavigation(
             )
         }
 
-        composable(Screen.PROFILE.route) {
-            //ProfileScreen(
-            //    onNavigateBack = { navController.navigateUp() }
-            //)
+        composable(Screen.CHAT.route) {
+            ChatBotScreen()
         }
 
-        //composable(Screen.CHAT.route) {
-        //    ChatScreen(
-        //        recorder = recorder
-        //    )
-        //}
+        composable(Screen.AVATAR.route) {
+            AvatarScreen()
+        }
 
         composable(Screen.CAMERA.route) {
-            CameraScreen()
+            CameraScreen(onBack = { navigator.controller.navigateUp() })
         }
 
         composable(Screen.VIDEOS.route) {
             VideoLessonsScreen()
+        }
+
+        composable(Screen.ACCOUNT.route) {
+            AccountFlowManager {
+                navigator.navigate(Screen.HOME)
+            }
+        }
+
+        composable(
+            route = "${Screen.LESSONS.route}/{sessionId}",
+            arguments = listOf(
+                navArgument("sessionId") { type = NavType.StringType }
+            )
+        ) {
+            LessonFlowManager(
+                navigator = navigator
+            )
         }
     }
 }

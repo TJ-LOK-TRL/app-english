@@ -1,6 +1,6 @@
 package com.masterproject.englishapp.exercises
 
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.data.loader.PhraseLoader
 import com.masterproject.englishapp.data.phrase.Phrase
 import com.masterproject.englishapp.exercises.model.Exercise

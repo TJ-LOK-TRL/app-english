@@ -45,7 +45,6 @@ fun CameraPreview(
                 val bitmap = image.toBitmap()
 
                 val rotatedBitmap = if (image.imageInfo.rotationDegrees != 0) {
-                    Log.d("CameraPreview", "Bitmap was rotated by ${image.imageInfo.rotationDegrees.toFloat()} degrees!")
                     ImageUtils.rotateBitmap(bitmap, image.imageInfo.rotationDegrees.toFloat())
                 } else {
                     bitmap

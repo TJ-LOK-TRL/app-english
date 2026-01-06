@@ -72,7 +72,7 @@ fun Rect3DCard(
     depthColor: Color? = null,
     borderWidth: Dp = 1.dp,
     borderColor: Color = Color(0xFFE0E0E0),
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null,
     contentPadding: Dp = 0.dp,
     faceVisible: Boolean = true,
     content: @Composable BoxScope.() -> Unit
@@ -83,8 +83,14 @@ fun Rect3DCard(
         blue = color.blue * 0.85f
     )
 
+    val clickableModifier = if (onClick != null) {
+        modifier.clickable(onClick = onClick)
+    } else {
+        modifier
+    }
+
     Layout(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = clickableModifier,
         content = {
 
             Box(

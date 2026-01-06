@@ -26,7 +26,7 @@ import com.masterproject.englishapp.components.bubble.Side
 import com.masterproject.englishapp.components.buttons.Circular3DButton
 import com.masterproject.englishapp.components.optiongrid.TextImageAnswerOption
 import com.masterproject.englishapp.components.tokenImagePainter
-import com.masterproject.englishapp.data.Category
+import com.masterproject.englishapp.grammar.Category
 import com.masterproject.englishapp.data.token.TokenId
 import com.masterproject.englishapp.exercises.SpeakTokenData
 import com.masterproject.englishapp.exercises.model.ExerciseResult

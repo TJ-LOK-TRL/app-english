@@ -41,6 +41,8 @@ object AppColors {
     val Black800 = Color(0xFF212121)
     val Black900 = Color(0xFF000000)
 
+    val LightRed = Color.Red.copy(alpha = 0.8f)
+
     // System
     val Background = Color.White// Color(0xFFEEEEEE)
     val Surface = Color(0xFFFFFFFF)

@@ -104,4 +104,8 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+
+    implementation(libs.play.services.location)
+
+    implementation(libs.androidx.work.runtime.ktx)
 }

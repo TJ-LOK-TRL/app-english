@@ -1,6 +1,7 @@
 // screens/MainLandingPage.kt
 package com.masterproject.englishapp.screens.main
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -8,9 +9,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -18,9 +21,13 @@ import com.masterproject.englishapp.components.BottomNavigationBar
 import com.masterproject.englishapp.components.headers.CommonHeader
 import com.masterproject.englishapp.components.loaders.AppSplashScreen
 import com.masterproject.englishapp.event.UiEvent
+import com.masterproject.englishapp.location.GeofenceManager
+import com.masterproject.englishapp.location.LocationContextHandler
 import com.masterproject.englishapp.navigation.MainNavigation
 import com.masterproject.englishapp.navigation.Navigator
 import com.masterproject.englishapp.navigation.Screen
+import com.masterproject.englishapp.notification.dailyreminder.DailyReminderHandler
+import com.masterproject.englishapp.permissions.AppPermission
 import com.masterproject.englishapp.permissions.PermissionManager
 import com.masterproject.englishapp.recorder.AndroidAudioRecorder
 
@@ -39,18 +46,7 @@ fun MainLandingPage(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
         val startRoute = if (mainViewModel.isLoggedIn) Screen.HOME.route else Screen.WELCOME.route
-
-        val shouldShowBars = remember(currentRoute) {
-            when {
-                currentRoute == null -> true
-                currentRoute.startsWith(Screen.PRACTICE.route) -> false
-                currentRoute.startsWith(Screen.LOGIN.route) -> false
-                currentRoute.startsWith(Screen.REGISTER.route) -> false
-                currentRoute.startsWith(Screen.INTRO.route) -> false
-                currentRoute.startsWith(Screen.WELCOME.route) -> false
-                else -> true
-            }
-        }
+        val currentScreen = remember(currentRoute) { Screen.fromRoute(currentRoute) }
 
         LaunchedEffect(Unit) {
             uiEventService.events.collect { event ->
@@ -78,9 +74,30 @@ fun MainLandingPage(
             }
         }
 
+        LaunchedEffect(mainViewModel.lunchedScreen) {
+            val pendingScreen = mainViewModel.lunchedScreen
+            if (pendingScreen != null && mainViewModel.isLoggedIn) {
+                Log.d("MainLandingPage", "Lunch screen: ${pendingScreen.route}")
+                navigator.navigate(pendingScreen) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                }
+                mainViewModel.clearLaunchedScreen()
+            }
+        }
+
+        LocationContextHandler(
+            permissionManager = permissionManager,
+            userPreferencesStore = mainViewModel.userPreferencesStore
+        )
+
+        DailyReminderHandler(
+            userPreferencesStore = mainViewModel.userPreferencesStore
+        )
+
         Scaffold(
             topBar = {
-                if (shouldShowBars) {
+                if (currentScreen.showHeader) {
                     CommonHeader(
                         navController = navController,
                         onBackClick = { navController.navigateUp() }
@@ -89,7 +106,7 @@ fun MainLandingPage(
             },
 
             bottomBar = {
-                if (shouldShowBars) {
+                if (currentScreen.showBottomBar) {
                     BottomNavigationBar(navigator, currentRoute)
                 }
             },

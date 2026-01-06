@@ -13,6 +13,11 @@ interface NavigationActions {
         params: String? = null,
         navOptions: (NavOptionsBuilder.() -> Unit) = { }
     )
+
+    fun navigateUp(
+        fallbackScreen: Screen? = null,
+        navOptions: (NavOptionsBuilder.() -> Unit) = { }
+    )
 }
 
 class Navigator(
@@ -37,5 +42,19 @@ class Navigator(
                 TODO()
             }
         )
+    }
+
+    override fun navigateUp(
+        fallbackScreen: Screen?,
+        navOptions: (NavOptionsBuilder.() -> Unit)
+    ) {
+        val previousRoute = navController.previousBackStackEntry?.destination?.route
+        val previousScreen = previousRoute?.let { route ->
+            Screen.fromRoute(route)
+        } ?: fallbackScreen
+
+        if (previousScreen != null) {
+            navigate(previousScreen, navOptions = navOptions)
+        }
     }
 }

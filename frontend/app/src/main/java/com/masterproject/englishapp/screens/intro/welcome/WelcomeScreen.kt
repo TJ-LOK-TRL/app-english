@@ -29,6 +29,8 @@ import com.masterproject.englishapp.components.buttons.SecondaryButton
 import com.masterproject.englishapp.navigation.NavigationActions
 import com.masterproject.englishapp.navigation.Screen
 import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.utils.DummyNavigator
+
 @Composable
 fun WelcomeScreen(navigator: NavigationActions) {
     Column(
@@ -103,10 +105,4 @@ fun WelcomeScreen(navigator: NavigationActions) {
     backgroundColor = 0xFFEEEEEE
 )
 @Composable
-fun WelcomeScreenPreview() = WelcomeScreen(object : NavigationActions {
-    override fun navigate(
-        screen: Screen,
-        params: String?,
-        navOptions: NavOptionsBuilder.() -> Unit
-    ) { }
-})
+fun WelcomeScreenPreview() = WelcomeScreen(DummyNavigator)

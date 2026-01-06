@@ -29,6 +29,7 @@ import com.masterproject.englishapp.navigation.BottomNavItem
 import com.masterproject.englishapp.navigation.NavigationActions
 import com.masterproject.englishapp.navigation.Screen
 import com.masterproject.englishapp.ui.theme.AppColors
+import com.masterproject.englishapp.utils.DummyNavigator
 
 @Composable
 fun BottomNavigationBar(
@@ -118,13 +119,7 @@ fun BottomNavigationBarPreview() {
             }
 
             BottomNavigationBar(
-                navigator = object : NavigationActions {
-                    override fun navigate(
-                        screen: Screen,
-                        params: String?,
-                        navOptions: NavOptionsBuilder.() -> Unit
-                    ) { }
-                },
+                navigator = DummyNavigator,
                 currentRoute = BottomNavItem.Practice.screen.route
             )
         }

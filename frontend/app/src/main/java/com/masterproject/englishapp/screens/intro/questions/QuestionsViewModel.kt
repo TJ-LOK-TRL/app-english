@@ -1,7 +1,7 @@
 package com.masterproject.englishapp.screens.intro.questions
 
 import androidx.lifecycle.ViewModel
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.user.UserPreferencesStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

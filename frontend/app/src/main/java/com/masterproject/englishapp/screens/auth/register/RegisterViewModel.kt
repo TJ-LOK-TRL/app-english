@@ -42,7 +42,7 @@ class RegisterViewModel @Inject constructor(
                         id = uid,
                         name = name,
                         email = email,
-                        preferences = userPreferencesStore.toDataModel(),
+                        preferences = userPreferencesStore.toDomain(),
                         model = BKTKnowledgeModel()
                     )
 

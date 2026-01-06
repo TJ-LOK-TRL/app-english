@@ -1,6 +1,6 @@
 package com.masterproject.englishapp.data.user.mapper
 
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.data.user.entities.KnowledgeStateEntity
 import com.masterproject.englishapp.data.user.entities.UserEntity
 import com.masterproject.englishapp.data.user.entities.UserPreferencesEntity
@@ -35,7 +35,11 @@ fun UserPreferencesEntity.toDomain(): UserPreferences =
         learningLanguage = Language.valueOf(learningLanguage),
         feedbackLanguage = Language.valueOf(feedbackLanguage),
         notificationsEnabled = notificationsEnabled,
-        dailyGoalMinutes = dailyGoalMinutes
+        dailyGoalMinutes = dailyGoalMinutes,
+        soundEffectsEnabled = soundEffectsEnabled,
+        vibrationEnabled = vibrationEnabled,
+        dailyRemindersEnabled = dailyRemindersEnabled,
+        gpsNotificationsEnabled = gpsNotificationsEnabled
     )
 
 fun UserPreferences.toEntity(): UserPreferencesEntity =
@@ -43,7 +47,11 @@ fun UserPreferences.toEntity(): UserPreferencesEntity =
         learningLanguage = learningLanguage.name,
         feedbackLanguage = feedbackLanguage.name,
         notificationsEnabled = notificationsEnabled,
-        dailyGoalMinutes = dailyGoalMinutes
+        dailyGoalMinutes = dailyGoalMinutes,
+        soundEffectsEnabled = soundEffectsEnabled,
+        vibrationEnabled = vibrationEnabled,
+        dailyRemindersEnabled = dailyRemindersEnabled,
+        gpsNotificationsEnabled = gpsNotificationsEnabled
     )
 
 fun KnowledgeModel.toEntity(): KnowledgeStateEntity {

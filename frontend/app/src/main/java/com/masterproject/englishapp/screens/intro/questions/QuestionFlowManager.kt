@@ -12,7 +12,7 @@ import androidx.navigation.NavOptionsBuilder
 import com.masterproject.englishapp.components.animations.AnimatedStepContent
 import com.masterproject.englishapp.components.buttons.PrimaryButton
 import com.masterproject.englishapp.components.headers.ProgressHeader
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.navigation.NavigationActions
 import com.masterproject.englishapp.navigation.Screen
 

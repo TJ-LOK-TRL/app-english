@@ -33,37 +33,6 @@ import com.masterproject.englishapp.components.cardspots.CardSpots
 import com.masterproject.englishapp.utils.DummyNavigator
 
 @Composable
-fun HomeScreen2(navigator: NavigationActions) {
-
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-
-        item {
-            HomeHeader()
-        }
-
-        item {
-            LearningHorizontalSection(navigator)
-        }
-
-        item {
-            Text(
-                text = "Practice",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-
-        item {
-            PracticeSection(navigator)
-        }
-    }
-}
-
-@Composable
 fun HomeScreen(navigator: NavigationActions) {
     Column(
         modifier = Modifier
@@ -253,7 +222,7 @@ fun PracticeSection(navigator: NavigationActions, modifier: Modifier = Modifier)
                 description = "Talk with interactive chat exercises",
                 0.5f
             ) {
-
+                navigator.navigate(Screen.CHAT)
             }
         }
         item {
@@ -263,7 +232,7 @@ fun PracticeSection(navigator: NavigationActions, modifier: Modifier = Modifier)
                 description = "Build real conversational skills",
                 0.35f
             ) {
-
+                navigator.navigate(Screen.AVATAR)
             }
         }
         item {

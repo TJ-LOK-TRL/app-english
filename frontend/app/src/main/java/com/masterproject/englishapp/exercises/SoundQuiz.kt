@@ -1,7 +1,7 @@
 package com.masterproject.englishapp.exercises
 
-import com.masterproject.englishapp.data.Category
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Category
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.data.loader.TokenLoader
 import com.masterproject.englishapp.data.token.AnyToken
 import com.masterproject.englishapp.exercises.model.Exercise

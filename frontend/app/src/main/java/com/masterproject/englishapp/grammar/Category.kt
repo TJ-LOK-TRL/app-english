@@ -1,4 +1,4 @@
-package com.masterproject.englishapp.data
+package com.masterproject.englishapp.grammar
 
 enum class Category {
     ANIMAL,

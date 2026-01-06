@@ -30,8 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.masterproject.englishapp.components.AppIcon
 import com.masterproject.englishapp.components.optiongrid.TextImageAnswerOption
 import com.masterproject.englishapp.components.tokenImagePainter
-import com.masterproject.englishapp.data.Category
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Category
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.data.token.Token
 import com.masterproject.englishapp.data.token.TokenId
 import com.masterproject.englishapp.exercises.SoundQuizData

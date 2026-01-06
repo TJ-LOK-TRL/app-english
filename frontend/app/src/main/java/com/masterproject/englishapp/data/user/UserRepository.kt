@@ -39,4 +39,11 @@ class UserRepository(
             .set(user)
             .await()
     }
+
+    suspend fun deleteUser(uid: String) {
+        firestore.collection("users")
+            .document(uid)
+            .delete()
+            .await()
+    }
 }

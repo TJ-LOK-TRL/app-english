@@ -8,7 +8,6 @@ sealed class BottomNavItem(
     val title: String,
     @DrawableRes val iconRes: Int
 ) {
-
     object Practice : BottomNavItem(
         screen = Screen.HOME,
         title = "Practice",
@@ -21,15 +20,15 @@ sealed class BottomNavItem(
         iconRes = R.drawable.ic_lessons
     )
 
-    object Profile : BottomNavItem(
-        screen = Screen.PROFILE,
-        title = "Profile",
-        iconRes = R.drawable.ic_profile
-    )
-
     object More : BottomNavItem(
         screen = Screen.PRACTICE,
         title = "More",
         iconRes = R.drawable.ic_video
+    )
+
+    object Profile : BottomNavItem(
+        screen = Screen.ACCOUNT,
+        title = "Profile",
+        iconRes = R.drawable.ic_profile
     )
 }

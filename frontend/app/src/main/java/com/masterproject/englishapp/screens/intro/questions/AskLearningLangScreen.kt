@@ -16,7 +16,7 @@ import com.masterproject.englishapp.components.AppIcon
 import com.masterproject.englishapp.components.LanguageSelectionList
 import com.masterproject.englishapp.components.bubble.Bubble
 import com.masterproject.englishapp.components.bubble.Side
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 
 @Composable
 fun AskLearningLangScreen(

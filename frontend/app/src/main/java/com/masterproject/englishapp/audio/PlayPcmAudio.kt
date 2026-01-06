@@ -23,7 +23,7 @@ suspend fun playPcmAudio(
 
     audioTrack.write(audioData, 0, audioData.size)
 
-    // número total de frames
+    // total frames
     val totalFrames = audioData.size / 2 // PCM 16bit = 2 bytes
 
     audioTrack.notificationMarkerPosition = totalFrames
@@ -32,7 +32,7 @@ suspend fun playPcmAudio(
         audioTrack.setPlaybackPositionUpdateListener(
             object : AudioTrack.OnPlaybackPositionUpdateListener {
                 override fun onMarkerReached(track: AudioTrack) {
-                    cont.resume(Unit) {}
+                    cont.resume(Unit) { cause, _, _ -> }
                 }
                 override fun onPeriodicNotification(track: AudioTrack) {}
             }

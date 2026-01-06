@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masterproject.englishapp.R
 import com.masterproject.englishapp.components.cards.Rect3DCard
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.ui.theme.AppColors
 
 data class LanguageViewData(val language: Language, val resId: Int, val value: String)

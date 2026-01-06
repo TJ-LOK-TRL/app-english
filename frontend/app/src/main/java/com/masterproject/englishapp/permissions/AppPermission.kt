@@ -24,6 +24,18 @@ enum class AppPermission(
     READ_DISK(
         Manifest.permission.READ_EXTERNAL_STORAGE,
         "Read access is required to load debug images and other files."
+    ),
+    LOCATION_COARSE(
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+        "Location access helps us provide context-aware learning based on your surroundings."
+    ),
+    LOCATION_FINE(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        "Precise location is needed to trigger geofencing for specific learning zones."
+    ),
+    LOCATION_BACKGROUND(
+        Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+        "Background location allows the app to alert you about learning opportunities even when your phone is in your pocket, ensuring a truly ubiquitous experience."
     );
 
     companion object {

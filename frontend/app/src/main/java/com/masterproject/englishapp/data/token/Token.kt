@@ -1,7 +1,7 @@
 package com.masterproject.englishapp.data.token
 
 import com.masterproject.englishapp.data.Identifiable
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.grammar.GClass
 import com.masterproject.englishapp.grammar.WordValue
 

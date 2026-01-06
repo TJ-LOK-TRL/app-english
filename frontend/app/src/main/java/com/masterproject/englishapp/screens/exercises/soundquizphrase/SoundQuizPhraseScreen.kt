@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.masterproject.englishapp.components.AppIcon
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.R
 import com.masterproject.englishapp.audio.playPcmAudio
 import com.masterproject.englishapp.components.bubble.Bubble

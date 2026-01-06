@@ -5,5 +5,7 @@ data class UserEntity(
     val name: String = "",
     val email: String = "",
     val preferences: UserPreferencesEntity = UserPreferencesEntity(),
-    val knowledge: KnowledgeStateEntity = KnowledgeStateEntity()
+    val knowledge: KnowledgeStateEntity = KnowledgeStateEntity(),
+    val dailyRemindersEnabled: Boolean = true,
+    val gpsNotificationsEnabled: Boolean = false
 )

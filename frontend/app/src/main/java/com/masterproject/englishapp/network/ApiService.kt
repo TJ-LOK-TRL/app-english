@@ -1,7 +1,9 @@
 package com.masterproject.englishapp.network
 
+import com.masterproject.englishapp.network.model.ChatResult
 import retrofit2.http.*
 import com.masterproject.englishapp.network.model.ConverseResult
+import com.masterproject.englishapp.network.model.MeaningLessonResponse
 import com.masterproject.englishapp.network.model.PronunciationResult
 import com.masterproject.englishapp.network.model.SynthesizeResult
 import okhttp3.MultipartBody
@@ -25,11 +27,26 @@ interface ApiService {
     ): ConverseResult
 
     @FormUrlEncoded
+    @POST("/api/speech/chat")
+    suspend fun chat(
+        @Field("text") text: String,
+        @Field("lang") lang: String? = null,
+        @Field("voice") voice: String? = null,
+        @Field("speed") speed: String? = null
+    ): ChatResult
+
+    @FormUrlEncoded
     @POST("/api/speech/kokoro/synthesize")
     suspend fun synthesize(
         @Field("text") text: String,
-        @Field("lang") lang: String = "en-US",
-        @Field("voice") voice: String = "af_heart",
-        @Field("speed") speed: Float = 1.0f
+        @Field("lang") lang: String? = null,
+        @Field("voice") voice: String? = null,
+        @Field("speed") speed: Float? = null
     ): SynthesizeResult
+
+    @FormUrlEncoded
+    @POST("/api/speech/generate-lesson")
+    suspend fun generateLesson(
+        @Field("context") context: String
+    ): MeaningLessonResponse
 }

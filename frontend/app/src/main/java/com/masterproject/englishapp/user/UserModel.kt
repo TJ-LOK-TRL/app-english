@@ -1,6 +1,6 @@
 package com.masterproject.englishapp.user
 
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.learning.bkt.BKTKnowledgeModel
 import com.masterproject.englishapp.learning.core.KnowledgeModel
 

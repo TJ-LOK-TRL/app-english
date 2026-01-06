@@ -1,6 +1,6 @@
 package com.masterproject.englishapp.data.loader
 
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.data.phrase.Phrase
 
 class PhraseLoader(

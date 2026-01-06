@@ -4,7 +4,7 @@ import androidx.compose.runtime.currentRecomposeScope
 import com.google.firebase.auth.FirebaseAuth
 import com.masterproject.englishapp.auth.AuthService
 import com.masterproject.englishapp.auth.firebase.FirebaseAuthService
-import com.masterproject.englishapp.data.Language
+import com.masterproject.englishapp.grammar.Language
 import com.masterproject.englishapp.data.user.UserRepository
 import com.masterproject.englishapp.data.user.mapper.toEntity
 import com.masterproject.englishapp.learning.bkt.BKTKnowledgeModel
@@ -64,5 +64,21 @@ class UserContext(
 
     fun getCurrentUid(): String? {
         return currentUser?.id ?: authService.getCurrentUserId()
+    }
+
+    suspend fun sendPasswordReset() {
+        val email = currentUser?.email ?: throw IllegalStateException("Email not found")
+        authService.sendPasswordReset(email)
+    }
+
+    suspend fun deleteAccount() {
+        val uid = getCurrentUid() ?: return
+        // Delete from Firestore
+        userRepository.deleteUser(uid)
+        // Delete from Auth
+        authService.deleteCurrentUser()
+        // Delete from local state
+        currentUser = null
+        userPreferencesStore.resetToDefaults()
     }
 }

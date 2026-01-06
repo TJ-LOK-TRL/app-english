@@ -14,7 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.masterproject.englishapp.components.FeedbackBottomBar
 import com.masterproject.englishapp.components.animations.AnimatedStepContent
 import com.masterproject.englishapp.components.headers.ExerciseHeader
-import com.masterproject.englishapp.data.Category
+import com.masterproject.englishapp.grammar.Category
 import com.masterproject.englishapp.exercises.base.ExerciseInfo
 import com.masterproject.englishapp.exercises.model.ExerciseKind
 import com.masterproject.englishapp.exercises.model.ExerciseResult

@@ -3,10 +3,11 @@ package com.masterproject.englishapp.screens.camera
 import android.app.Application
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.masterproject.englishapp.components.OverlayShape
+import com.masterproject.englishapp.components.overlays.OverlayShape
 import com.masterproject.englishapp.network.ApiService
 import com.masterproject.englishapp.vision.imageclassification.ImageClassification
 import com.masterproject.englishapp.vision.ImageUtils
@@ -19,6 +20,10 @@ import com.masterproject.englishapp.network.safeApiCall
 import com.masterproject.englishapp.result.getOrNull
 import com.masterproject.englishapp.vision.DetectedObject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -32,7 +37,7 @@ class CameraViewModel @Inject constructor(
     private val _debugInfo = MutableStateFlow<DebugResult?>(null)
     val debugInfo: StateFlow<DebugResult?> = _debugInfo
 
-    val analysisIntervalMs: Long = 2500L
+    val analysisIntervalMs: Long = 2000L
     
     private val classifier = ImageClassification(application)
     private val detector = ObjectRecognition(application)
@@ -40,11 +45,16 @@ class CameraViewModel @Inject constructor(
     private var previewWidth = 1
     private var previewHeight = 1
 
-    private val _overlays = MutableStateFlow<List<OverlayShape>>(emptyList())
-    val overlays: StateFlow<List<OverlayShape>> get() = _overlays
+    private val _autoOverlays = MutableStateFlow<List<OverlayShape>>(emptyList())
+
+    private val _manualOverlays = MutableStateFlow<List<OverlayShape>>(emptyList())
 
     private val _audioToPlay = MutableStateFlow<ByteArray?>(null)
     val audioToPlay: StateFlow<ByteArray?> = _audioToPlay
+
+    val overlays: StateFlow<List<OverlayShape>> = combine(_autoOverlays, _manualOverlays) { auto, manual ->
+        auto + manual
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onFrameCaptured(bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -80,7 +90,7 @@ class CameraViewModel @Inject constructor(
                 results.add(
                     DetectedObject(
                         boundingBox = d.boundingBox,
-                        label = label,
+                        label = d.label,
                         classificationConfidence = confidence
                     )
                 )
@@ -99,6 +109,16 @@ class CameraViewModel @Inject constructor(
                     val isNear = (objectArea / totalArea.toFloat()) > 0.15f
 
                     add(
+                        OverlayShape.ScannerRect(
+                            x = scaledLeft,
+                            y = scaledTop,
+                            width = scaledWidth,
+                            height = scaledHeight,
+                            color = Color.Red
+                        )
+                    )
+
+                    add(
                         OverlayShape.ARTag(
                             x = scaledLeft,
                             y = scaledTop,
@@ -108,16 +128,6 @@ class CameraViewModel @Inject constructor(
                             confidence = res.classificationConfidence,
                             isNear = isNear,
                             onClick = { speakLabel(res.label) }
-                        )
-                    )
-
-                    add(
-                        OverlayShape.ScannerRect(
-                            x = scaledLeft,
-                            y = scaledTop,
-                            width = scaledWidth,
-                            height = scaledHeight,
-                            color = Color.Red
                         )
                     )
                 }
@@ -131,11 +141,67 @@ class CameraViewModel @Inject constructor(
                 }
             )
 
-            _overlays.value = shapes
+            _autoOverlays.value = shapes
             Log.d("CameraViewModel", "Overlays created: ${shapes.size}")
         }
     }
 
+    fun onManualCrop(bitmap: Bitmap, points: List<Offset>, onFinished: () -> Unit) {
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                if (points.isEmpty()) return@launch
+
+                // Calculate Bounding Box of points
+                val minX = points.minOf { it.x }
+                val maxX = points.maxOf { it.x }
+                val minY = points.minOf { it.y }
+                val maxY = points.maxOf { it.y }
+
+                // Convert coordinates of screen to Bitmap coordinates
+                val scaleX = bitmap.width / previewWidth.toFloat()
+                val scaleY = bitmap.height / previewHeight.toFloat()
+
+                val rectInBitmap = android.graphics.Rect(
+                    (minX * scaleX).toInt().coerceIn(0, bitmap.width),
+                    (minY * scaleY).toInt().coerceIn(0, bitmap.height),
+                    (maxX * scaleX).toInt().coerceIn(0, bitmap.width),
+                    (maxY * scaleY).toInt().coerceIn(0, bitmap.height)
+                )
+
+                // Crop and classify
+                val cropped = ImageUtils.cropBitmap(bitmap, rectInBitmap)
+                val manualDetections = detector.analyzeFrame(cropped)
+                val bestDetection = manualDetections.maxByOrNull { it.confidence }
+
+                val label = bestDetection?.label ?: "Unknown"
+                val confidence = bestDetection?.confidence ?: 0f
+
+                // Create Overlay of the result
+                val newManualTag = OverlayShape.ARTag(
+                    x = minX,
+                    y = minY,
+                    boxWidth = maxX - minX,
+                    boxHeight = maxY - minY,
+                    label = label,
+                    confidence = confidence,
+                    isNear = true,
+                    onClick = { speakLabel(label) }
+                )
+
+                val newManualCircle = OverlayShape.ManualCircle(points = points)
+
+                // Update overlays
+                _manualOverlays.value = _manualOverlays.value + listOf(newManualTag, newManualCircle)
+
+                // TTS
+                speakLabel(label)
+            } finally {
+                withContext(Dispatchers.Main) {
+                    onFinished()
+                }
+            }
+        }
+    }
     @OptIn(ExperimentalEncodingApi::class)
     fun speakLabel(label: String) {
         viewModelScope.launch {
@@ -149,12 +215,17 @@ class CameraViewModel @Inject constructor(
         }
     }
 
-    fun clearAudio() { _audioToPlay.value = null }
-
     fun updatePreviewSize(width: Int, height: Int) {
         previewWidth = width
         previewHeight = height
         Log.d("CameraViewModel", "Preview size updated: ${width}x${height}")
+    }
+
+    fun clearAudio() { _audioToPlay.value = null }
+
+    fun clearAllOverlays() {
+        _manualOverlays.value = emptyList()
+        _autoOverlays.value = emptyList()
     }
 
     override fun onCleared() {

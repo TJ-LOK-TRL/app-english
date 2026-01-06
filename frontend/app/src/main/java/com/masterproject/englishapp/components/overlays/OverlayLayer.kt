@@ -1,32 +1,18 @@
-package com.masterproject.englishapp.components
+package com.masterproject.englishapp.components.overlays
 
-import android.graphics.BlurMaskFilter
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,10 +21,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +60,11 @@ sealed class OverlayShape {
         val animate: Boolean = false,
         val animationProgress: Float = 0f, // 0f to 1f
         val scanningLineColor: Color = Color.Green.copy(alpha = 0.7f)
+    ) : OverlayShape()
+
+    data class ManualCircle(
+        val points: List<Offset>,
+        val color: Color = Color.Cyan
     ) : OverlayShape()
 }
 
@@ -113,6 +103,22 @@ fun OverlayLayer(
                         alpha = 0.5f,
                         style = Stroke(width = 4f)
                     )
+
+                    shape is OverlayShape.ManualCircle -> {
+                        val path = Path().apply {
+                            if (shape.points.isNotEmpty()) {
+                                moveTo(shape.points.first().x, shape.points.first().y)
+                                shape.points.forEach { lineTo(it.x, it.y) }
+                                close() // Close circle visually
+                            }
+                        }
+                        drawPath(
+                            path = path,
+                            color = shape.color,
+                            style = Stroke(width = 6f, cap = StrokeCap.Round),
+                            alpha = 0.6f
+                        )
+                    }
 
                     shape is OverlayShape.ScannerRect -> {
                         val currentProgress = if (shape.animate) progress else shape.animationProgress
@@ -246,7 +252,7 @@ fun ARTagComponent(
 
     val density = LocalDensity.current
     var tagSize by remember { mutableStateOf(IntSize.Zero) }
-    val tipSize = 50f // Bubble tip size
+    val tipSize = 20f // Bubble tip size
 
     // Decide side (Top or Bottom)
     val side = remember(tag.y, tag.boxHeight, tagSize, containerHeight) {
@@ -278,7 +284,7 @@ fun ARTagComponent(
                 y = with(density) { centerY.toDp() }
             )
             .onGloballyPositioned { coords -> tagSize = coords.size }
-            .animateContentSize()
+            //.animateContentSize()
             .clickable { tag.onClick() }
     ) {
         Bubble(

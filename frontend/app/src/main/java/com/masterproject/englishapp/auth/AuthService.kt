@@ -10,4 +10,6 @@ interface AuthService {
     suspend fun signUp(email: String, password: String): String
     fun logout()
     fun getCurrentUserId(): String?
+    suspend fun sendPasswordReset(email: String)
+    suspend fun deleteCurrentUser()
 }
