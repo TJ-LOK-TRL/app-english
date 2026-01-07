@@ -6,6 +6,7 @@ data class UserEntity(
     val email: String = "",
     val preferences: UserPreferencesEntity = UserPreferencesEntity(),
     val knowledge: KnowledgeStateEntity = KnowledgeStateEntity(),
+    val statistics: UserStatisticsEntity = UserStatisticsEntity(),
     val dailyRemindersEnabled: Boolean = true,
     val gpsNotificationsEnabled: Boolean = false
 )

@@ -2,6 +2,7 @@ package com.masterproject.englishapp.components.loaders
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +18,7 @@ fun OverlayLoader() {
         color = Color.Black.copy(alpha = 0.3f)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            androidx.compose.material3.CircularProgressIndicator(
+            CircularProgressIndicator(
                 color = AppColors.Primary,
                 strokeWidth = 4.dp
             )

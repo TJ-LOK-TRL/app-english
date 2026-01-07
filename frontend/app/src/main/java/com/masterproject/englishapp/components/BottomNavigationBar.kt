@@ -36,10 +36,11 @@ fun BottomNavigationBar(
     navigator: NavigationActions,
     currentRoute: String?
 ) {
+    // TODO: Improve this later
     val items = listOf(
         BottomNavItem.Practice,
-        BottomNavItem.Lessons,
-        BottomNavItem.More,
+        BottomNavItem.Videos,
+        BottomNavItem.Statistics,
         BottomNavItem.Profile,
     )
 

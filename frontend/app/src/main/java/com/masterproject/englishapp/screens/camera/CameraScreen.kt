@@ -45,6 +45,7 @@ fun CameraScreen(
 ) {
     val overlays by cameraViewModel.overlays.collectAsState()
     val audioData by cameraViewModel.audioToPlay.collectAsState()
+    val isAnalyzing by cameraViewModel.isAnalyzing.collectAsState()
 
     LaunchedEffect(audioData) {
         audioData?.let { bytes ->
@@ -55,7 +56,7 @@ fun CameraScreen(
 
     CameraScreenContent(
         overlays = overlays,
-        analysisInterval = cameraViewModel.analysisIntervalMs,
+        isAnalyzing = isAnalyzing,
         onBack = onBack,
         onManualCrop = { bitmap, points, onFinished -> cameraViewModel.onManualCrop(bitmap, points, onFinished) },
         onFrameCaptured = { cameraViewModel.onFrameCaptured(it) },
@@ -67,14 +68,13 @@ fun CameraScreen(
 @Composable
 fun CameraScreenContent(
     overlays: List<OverlayShape> = emptyList(),
-    analysisInterval: Long = 500L,
+    isAnalyzing: Boolean = false,
     onBack: () -> Unit = {},
     onManualCrop: (Bitmap, List<Offset>, () -> Unit) -> Unit = { _, _, _ -> },
     onFrameCaptured: (Bitmap) -> Unit = {},
     onPreviewSizeChanged: (Int, Int) -> Unit = { _, _ -> },
     onClearOverlays: () -> Unit = {}
 ) {
-    var lastAnalysisTime by remember { mutableLongStateOf(0L) }
     var containerSize by remember { mutableStateOf(IntSize.Zero) }
     var isDrawingMode by remember { mutableStateOf(false) }
     var currentBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -99,13 +99,9 @@ fun CameraScreenContent(
             CameraPreview(
                 flashEnabled = flashEnabled,
                 onFrame = { bitmap ->
-                    if (!isDrawingMode) {
+                    if (!isDrawingMode && !isAnalyzing) {
                         currentBitmap = bitmap
-                        val currentTime = System.currentTimeMillis()
-                        if (currentTime - lastAnalysisTime >= analysisInterval) {
-                            lastAnalysisTime = currentTime
-                            onFrameCaptured(bitmap)
-                        }
+                        onFrameCaptured(bitmap)
                     }
                 },
                 onPreviewSizeChanged = onPreviewSizeChanged

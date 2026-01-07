@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.masterproject.englishapp.R
+import com.masterproject.englishapp.audio.SoundManager
 import com.masterproject.englishapp.components.FeedbackBottomBar
 import com.masterproject.englishapp.components.animations.AnimatedStepContent
 import com.masterproject.englishapp.components.headers.ExerciseHeader
@@ -87,12 +89,34 @@ fun ExerciseFlowManager(
                 questionId = System.currentTimeMillis()
                 currentExercise = availableExercises.random()
             } else {
-                sessionViewModel.saveFinalProgress()
+                val sessionDuration = System.currentTimeMillis() - startTime
+                sessionViewModel.handleExerciseFlowEnd(sessionDuration)
                 isFinished = true
             }
         } else {
             questionId = System.currentTimeMillis()
             currentExercise = availableExercises.random()
+        }
+    }
+
+    val context = LocalContext.current
+    val feedbackManager = remember { SoundManager(context) }
+
+    LaunchedEffect(feedbackState) {
+        val result = feedbackState ?: return@LaunchedEffect
+
+        if (sessionViewModel.isSoundEnabled) {
+            when (result) {
+                is ExerciseResult.Correct -> feedbackManager.playSound(R.raw.correct)
+                is ExerciseResult.Wrong -> feedbackManager.playSound(R.raw.wrong)
+                else -> {}
+            }
+        }
+    }
+
+    LaunchedEffect(isFinished) {
+        if (isFinished && sessionViewModel.isVibrationEnabled) {
+            feedbackManager.vibrate()
         }
     }
 
@@ -148,7 +172,7 @@ fun ExerciseFlowManager(
                         message = result.message ?: "",
                         isCorrect = result is ExerciseResult.Correct,
                         onContinue = {
-                            sessionViewModel.updateKnowledge(result)
+                            sessionViewModel.handleExerciseResult(result, currentExercise!!.supportedTypes.random())
                             answersHistory.add(result is ExerciseResult.Correct)
                             feedbackState = null
                             next(true)

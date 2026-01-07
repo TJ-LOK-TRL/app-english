@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
+import com.masterproject.englishapp.navigation.deeplink.DeepLinkAction
 import com.masterproject.englishapp.notification.AppNotificationManager
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
@@ -30,7 +31,7 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
                     notificationId = 1001,
                     title = "Welcome to the ${geofence.requestId}!",
                     message = "Ready to practice your English?",
-                    targetScreen = "..."
+                    command = "app://action/${DeepLinkAction.CONTEXTUAL_LESSON.routeDispatcher}?context=${geofence.requestId}"
                 )
             }
         }

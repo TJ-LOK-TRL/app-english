@@ -22,3 +22,25 @@ fun calculateDelayUntil(hour: Int): Long {
 
     return targetTime - now
 }
+
+fun checkIsStreakContinued(lastDate: Long?, nowDate: Long): Boolean {
+    if (lastDate == null) return true
+
+    val last = Calendar.getInstance().apply { timeInMillis = lastDate }
+    val current = Calendar.getInstance().apply { timeInMillis = nowDate }
+
+    // Add one day to the last lesson
+    last.add(Calendar.DAY_OF_YEAR, 1)
+
+    // If today's date is equal to the "tomorrow" of the last lesson, the streak continues
+    return last.get(Calendar.YEAR) == current.get(Calendar.YEAR) &&
+            last.get(Calendar.DAY_OF_YEAR) == current.get(Calendar.DAY_OF_YEAR)
+}
+
+fun checkIsSameDay(lastDate: Long?, nowDate: Long): Boolean {
+    if (lastDate == null) return false
+    val last = Calendar.getInstance().apply { timeInMillis = lastDate }
+    val current = Calendar.getInstance().apply { timeInMillis = nowDate }
+    return last.get(Calendar.YEAR) == current.get(Calendar.YEAR) &&
+            last.get(Calendar.DAY_OF_YEAR) == current.get(Calendar.DAY_OF_YEAR)
+}

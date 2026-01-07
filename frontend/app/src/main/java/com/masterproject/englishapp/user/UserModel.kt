@@ -9,5 +9,6 @@ data class UserModel(
     val name: String,
     val email: String,
     val preferences: UserPreferences,
-    val model: KnowledgeModel
+    val model: KnowledgeModel,
+    val statistics: UserStatistics = UserStatistics()
 )

@@ -54,7 +54,12 @@ fun ChatBotScreen(
         messages = messages,
         isSending = isSending,
         playingMessageId = playingMessageId,
-        onSendMessage = { text -> viewModel.sendMessage(text) }
+        onSendMessage = { text -> viewModel.sendMessage(text) },
+        onPlayAudio = { message ->
+            message.audioBase64?.let { base64 ->
+                viewModel.playBotAudio(message.id, base64)
+            }
+        }
     )
 }
 
@@ -63,7 +68,8 @@ fun ChatBotContent(
     messages: List<ChatMessage>,
     isSending: Boolean,
     playingMessageId: String?,
-    onSendMessage: (String) -> Unit
+    onSendMessage: (String) -> Unit,
+    onPlayAudio: (ChatMessage) -> Unit
 ) {
     var textState by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -90,7 +96,11 @@ fun ChatBotContent(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(messages) { message ->
-                ChatBubble(message, playingMessageId)
+                ChatBubble(
+                    message = message,
+                    playingMessageId = playingMessageId,
+                    onBubbleClick = { onPlayAudio(message) }
+                )
             }
             if (isSending) {
                 item {
@@ -154,7 +164,11 @@ fun ChatBotContent(
 }
 
 @Composable
-fun ChatBubble(message: ChatMessage, playingMessageId: String?) {
+fun ChatBubble(
+    message: ChatMessage,
+    playingMessageId: String?,
+    onBubbleClick: () -> Unit
+) {
     val isThisPlaying = playingMessageId == message.id
     val alignment = if (message.isUser) Alignment.End else Alignment.Start
     val bubbleColor = if (message.isUser) Color(0xFFFFCF83) else Color.White
@@ -171,7 +185,8 @@ fun ChatBubble(message: ChatMessage, playingMessageId: String?) {
                 color = bubbleColor,
                 shape = shape,
                 shadowElevation = 1.dp,
-                modifier = Modifier.widthIn(max = 280.dp)
+                modifier = Modifier.widthIn(max = 280.dp),
+                onClick = { if (!message.isUser) onBubbleClick() }
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
                     Text(text = message.text, color = Color.Black, fontSize = 16.sp)
@@ -207,6 +222,7 @@ fun ChatBotPreview() {
         messages = mockMessages,
         isSending = false,
         playingMessageId = msg.id,
-        onSendMessage = {}
+        onSendMessage = {},
+        {}
     )
 }

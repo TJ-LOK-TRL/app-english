@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.masterproject.englishapp.components.overlays.OverlayShape
+import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.network.ApiService
 import com.masterproject.englishapp.vision.imageclassification.ImageClassification
 import com.masterproject.englishapp.vision.ImageUtils
@@ -31,13 +32,17 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @HiltViewModel
 class CameraViewModel @Inject constructor(
     application: Application,
-    private val api: ApiService
+    private val api: ApiService,
+    private val uiEventService: UiEventService
 ) : AndroidViewModel(application) {
 
     private val _debugInfo = MutableStateFlow<DebugResult?>(null)
     val debugInfo: StateFlow<DebugResult?> = _debugInfo
 
-    val analysisIntervalMs: Long = 2000L
+    private val _isAnalyzing = MutableStateFlow(false)
+    val isAnalyzing: StateFlow<Boolean> = _isAnalyzing
+
+    private val minIntervalMs = 500L
     
     private val classifier = ImageClassification(application)
     private val detector = ObjectRecognition(application)
@@ -57,92 +62,117 @@ class CameraViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     fun onFrameCaptured(bitmap: Bitmap) {
+        if (_isAnalyzing.value) return
+
         viewModelScope.launch(Dispatchers.Default) {
-            // SCALE FACTORS (convert bitmap to preview coordinates)
-            val scaleX = previewWidth / bitmap.width.toFloat()
-            val scaleY = previewHeight / bitmap.height.toFloat()
+            val startTime = System.currentTimeMillis()
+            _isAnalyzing.value = true
 
-            // Detect objects
-            val detections = detector.analyzeFrame(bitmap)
-            Log.d("CameraViewModel", "Objects detected: ${detections.size}")
+            try {
+                // SCALE FACTORS (convert bitmap to preview coordinates)
+                val scaleX = previewWidth / bitmap.width.toFloat()
+                val scaleY = previewHeight / bitmap.height.toFloat()
 
-            val results = mutableListOf<DetectedObject>()
+                // Detect objects
+                val detections = detector.analyzeFrame(bitmap)
+                Log.d("CameraViewModel", "Objects detected: ${detections.size}")
 
-            // For each object detected
-            for (d in detections) {
-                Log.d("CameraViewModel", "Detection: boundingBox=${d.boundingBox}")
+                val results = mutableListOf<DetectedObject>()
 
-                // Crop area of the bitmap corresponding to the detected area
-                val cropped = ImageUtils.cropBitmap(bitmap, d.boundingBox)
-                Log.d("CameraViewModel", "Cropped bitmap: width=${cropped.width}, height=${cropped.height}")
-                //ImageUtils.saveBitmapToGallery(getApplication(), cropped, "cropped_${System.currentTimeMillis()}")
+                // For each object detected
+                for (d in detections) {
+                    Log.d("CameraViewModel", "Detection: boundingBox=${d.boundingBox}")
 
-                // Classify only the cropped area
-                val classification = classifier.analyzeFrame(cropped)
-                val label = classification?.label ?: "unknown"
-                val confidence = classification?.confidence ?: 0f
-
-                Log.d(
-                    "CameraViewModel",
-                    "Classification: label=$label, confidence=$confidence"
-                )
-
-                results.add(
-                    DetectedObject(
-                        boundingBox = d.boundingBox,
-                        label = d.label,
-                        classificationConfidence = confidence
+                    // Crop area of the bitmap corresponding to the detected area
+                    val cropped = ImageUtils.cropBitmap(bitmap, d.boundingBox)
+                    Log.d(
+                        "CameraViewModel",
+                        "Cropped bitmap: width=${cropped.width}, height=${cropped.height}"
                     )
-                )
-            }
+                    //ImageUtils.saveBitmapToGallery(getApplication(), cropped, "cropped_${System.currentTimeMillis()}")
 
-            // Create overlays
-            val shapes = buildList {
-                results.forEach { res ->
-                    val box = res.boundingBox
-                    val scaledLeft = box.left * scaleX
-                    val scaledTop = box.top * scaleY
-                    val scaledWidth = box.width() * scaleX
-                    val scaledHeight = box.height() * scaleY
-                    val objectArea = box.width() * box.height()
-                    val totalArea = bitmap.width * bitmap.height
-                    val isNear = (objectArea / totalArea.toFloat()) > 0.15f
+                    // Classify only the cropped area
+                    val classification = classifier.analyzeFrame(cropped)
+                    val label = classification?.label ?: "unknown"
+                    val confidence = classification?.confidence ?: 0f
 
-                    add(
-                        OverlayShape.ScannerRect(
-                            x = scaledLeft,
-                            y = scaledTop,
-                            width = scaledWidth,
-                            height = scaledHeight,
-                            color = Color.Red
-                        )
+                    Log.d(
+                        "CameraViewModel",
+                        "Classification: label=$label, confidence=$confidence"
                     )
 
-                    add(
-                        OverlayShape.ARTag(
-                            x = scaledLeft,
-                            y = scaledTop,
-                            boxWidth = scaledWidth,
-                            boxHeight = scaledHeight,
-                            label = res.label,
-                            confidence = res.classificationConfidence,
-                            isNear = isNear,
-                            onClick = { speakLabel(res.label) }
+                    results.add(
+                        DetectedObject(
+                            boundingBox = d.boundingBox,
+                            label = d.label,
+                            classificationConfidence = confidence
                         )
                     )
                 }
-            }
 
-            val fullClassification = classifier.analyzeFrame(bitmap)
-            _debugInfo.value = DebugResult(
-                fullImageLabel = fullClassification?.label ?: "None",
-                crops = results.map { res ->
-                    ImageUtils.cropBitmap(bitmap, res.boundingBox) to res
+                // Create overlays
+                val shapes = buildList {
+                    results.forEach { res ->
+                        val box = res.boundingBox
+                        val scaledLeft = box.left * scaleX
+                        val scaledTop = box.top * scaleY
+                        val scaledWidth = box.width() * scaleX
+                        val scaledHeight = box.height() * scaleY
+                        val objectArea = box.width() * box.height()
+                        val totalArea = bitmap.width * bitmap.height
+                        val isNear = (objectArea / totalArea.toFloat()) > 0.15f
+
+                        add(
+                            OverlayShape.ScannerRect(
+                                x = scaledLeft,
+                                y = scaledTop,
+                                width = scaledWidth,
+                                height = scaledHeight,
+                                color = Color.Red
+                            )
+                        )
+
+                        add(
+                            OverlayShape.ARTag(
+                                x = scaledLeft,
+                                y = scaledTop,
+                                boxWidth = scaledWidth,
+                                boxHeight = scaledHeight,
+                                label = res.label,
+                                confidence = res.classificationConfidence,
+                                isNear = isNear,
+                                onClick = { speakLabel(res.label) }
+                            )
+                        )
+                    }
                 }
-            )
 
-            _autoOverlays.value = shapes
-            Log.d("CameraViewModel", "Overlays created: ${shapes.size}")
+                val fullClassification = classifier.analyzeFrame(bitmap)
+                _debugInfo.value = DebugResult(
+                    fullImageLabel = fullClassification?.label ?: "None",
+                    crops = results.map { res ->
+                        ImageUtils.cropBitmap(bitmap, res.boundingBox) to res
+                    }
+                )
+
+                _autoOverlays.value = shapes
+                Log.d("CameraViewModel", "Overlays created: ${shapes.size}")
+            } catch (e: Exception) {
+                Log.e("CameraViewModel", "Error analyzing: ${e.message}")
+                uiEventService.showError("Parece que houve um erro :/")
+            } finally {
+                // Respect my min duration between calls
+                val endTime = System.currentTimeMillis()
+                val processingDuration = endTime - startTime
+                val remainingWait = minIntervalMs - processingDuration
+
+                if (remainingWait > 0) {
+                    kotlinx.coroutines.delay(remainingWait)
+                }
+
+                // Free him for the next call
+                _isAnalyzing.value = false
+            }
         }
     }
 

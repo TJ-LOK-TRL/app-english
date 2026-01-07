@@ -23,13 +23,13 @@ object AppNotificationManager {
         notificationId: Int,
         title: String,
         message: String,
-        targetScreen: String? = null
+        command: String? = null
     ) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create channel if not exist yet
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = if (channelId == CHANNEL_LOCATION) "Location Context" else "Study Reminders"
+            val name = if (channelId == CHANNEL_LOCATION) "Location Context" else "Study Reminders" // TODO: Improve this in the future
             val channel = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_HIGH)
             notificationManager.createNotificationChannel(channel)
         }
@@ -37,7 +37,7 @@ object AppNotificationManager {
         // Configure the click
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            targetScreen?.let { putExtra("target_screen", it) }
+            command?.let { putExtra("command", it) }
         }
 
         val pendingIntent = PendingIntent.getActivity(

@@ -9,8 +9,12 @@ import com.masterproject.englishapp.data.user.UserRepository
 import com.masterproject.englishapp.data.user.mapper.toDomain
 import com.masterproject.englishapp.event.UiEventService
 import com.masterproject.englishapp.navigation.Screen
+import com.masterproject.englishapp.navigation.deeplink.CommandResult
+import com.masterproject.englishapp.navigation.deeplink.DeepLinkAction
+import com.masterproject.englishapp.navigation.deeplink.DeepLinkParser
 import com.masterproject.englishapp.user.UserContext
 import com.masterproject.englishapp.user.UserPreferencesStore
+import com.masterproject.englishapp.utils.UrlBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,8 +29,11 @@ class MainViewModel @Inject constructor(
     var isInitializing by mutableStateOf(true)
         private set
 
-    var lunchedScreen by mutableStateOf<Screen?>(null)
+    var lunchedRoute by mutableStateOf<String?>(null)
         private set
+
+    val isLoggedIn: Boolean
+        get() = userContext.isLoggedIn()
 
     init {
         checkSession()
@@ -49,13 +56,24 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun launchScreen(screen: Screen) {
-        lunchedScreen = screen
+    fun handleDeepLink(command: String?) {
+        when (val result = DeepLinkParser.parseCommand(command)) {
+            is CommandResult.Action -> {
+                DeepLinkAction.fromRouteDispatcher(result.action)?.let {
+                    lunchedRoute = UrlBuilder.buildUrl(
+                        basePath = result.action,
+                        params = result.params
+                    )
+                }
+            }
+            is CommandResult.Navigate -> {
+                lunchedRoute = result.route
+            }
+            else -> {}
+        }
     }
 
-    fun clearLaunchedScreen() {
-        lunchedScreen = null
+    fun clearLunchedRoute() {
+        lunchedRoute = null
     }
-
-    val isLoggedIn: Boolean get() = userContext.isLoggedIn()
 }

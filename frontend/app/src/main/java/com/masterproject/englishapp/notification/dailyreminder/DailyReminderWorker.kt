@@ -13,7 +13,7 @@ class DailyReminderWorker(context: Context, params: WorkerParameters) : Worker(c
             2002,
             "Hora de praticar!",
             "Faltam apenas 15 minutos para manteres a tua meta diária.",
-            targetScreen = "home"
+            command = "app://open/home"
         )
         return Result.success()
     }

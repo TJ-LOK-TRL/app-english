@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import com.masterproject.englishapp.navigation.Screen
 import com.masterproject.englishapp.permissions.PermissionManager
 import com.masterproject.englishapp.screens.main.MainLandingPage
 import com.masterproject.englishapp.screens.main.MainViewModel
@@ -47,8 +46,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIntent() {
-        intent?.getStringExtra("target_screen")?.let { screen ->
-            mainViewModel.launchScreen(Screen.fromRoute(screen))
-        }
+        val deepLinkCommand = intent?.getStringExtra("command")
+        mainViewModel.handleDeepLink(deepLinkCommand)
     }
 }

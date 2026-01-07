@@ -32,6 +32,18 @@ class ChatBotViewModel @Inject constructor(
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
 
+    init {
+        // Init message
+        if (_messages.value.isEmpty()) {
+            _messages.value = listOf(
+                ChatMessage(
+                    text = "Hello! I'm your Dragon English tutor. How can I help you today?",
+                    isUser = false
+                )
+            )
+        }
+    }
+
     fun sendMessage(text: String) {
         if (text.isBlank()) return
 

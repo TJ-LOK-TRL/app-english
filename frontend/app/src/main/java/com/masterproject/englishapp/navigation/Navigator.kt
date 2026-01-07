@@ -1,5 +1,6 @@
 package com.masterproject.englishapp.navigation
 
+import android.util.Log
 import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
@@ -36,6 +37,7 @@ class Navigator(
             required = screen.requiredPermissions,
             onGranted = {
                 val route = if (params != null) screen.route + params else screen.route
+                Log.d("Navigation", "Navigating to: $route")
                 navController.navigate(route, navOptions)
             },
             onDenied = {
@@ -49,9 +51,9 @@ class Navigator(
         navOptions: (NavOptionsBuilder.() -> Unit)
     ) {
         val previousRoute = navController.previousBackStackEntry?.destination?.route
-        val previousScreen = previousRoute?.let { route ->
-            Screen.fromRoute(route)
-        } ?: fallbackScreen
+
+        // TODO: Fix bug of params not being handled or considered!
+        val previousScreen = previousRoute?.let { route -> Screen.fromRoute(route) } ?: fallbackScreen
 
         if (previousScreen != null) {
             navigate(previousScreen, navOptions = navOptions)

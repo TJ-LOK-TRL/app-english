@@ -14,16 +14,16 @@ sealed class BottomNavItem(
         iconRes = R.drawable.ic_graduation
     )
 
-    object Lessons : BottomNavItem(
+    object Videos : BottomNavItem(
         screen = Screen.VIDEOS,
         title = "Lessons",
         iconRes = R.drawable.ic_lessons
     )
 
-    object More : BottomNavItem(
-        screen = Screen.PRACTICE,
-        title = "More",
-        iconRes = R.drawable.ic_video
+    object Statistics : BottomNavItem(
+        screen = Screen.STATISTICS,
+        title = "Statistics",
+        iconRes = R.drawable.ic_statistics
     )
 
     object Profile : BottomNavItem(
