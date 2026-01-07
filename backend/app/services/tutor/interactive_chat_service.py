@@ -20,8 +20,12 @@ class InteractiveChatService:
         key = ConversationCacheKey(user_id)
         
         # Load or create the chat history
-        #chat_history = self.cache.get(key) or ChatHistory(user_id, []) # Can be heavy so is deactivated for now
-        chat_history = ChatHistory(user_id, [])
+        chat_history = self.cache.get(key) or ChatHistory(user_id, [])
+        
+        # Cut for testing
+        # TODO: Remove this part in the future
+        if len(chat_history.messages) > 4:
+            chat_history.messages = chat_history.messages[-4:]
         
         # Call chat api
         response = self.chat_service.generate_parsed(message, PhraseResponseStruct, chat_history, self.system_message).response

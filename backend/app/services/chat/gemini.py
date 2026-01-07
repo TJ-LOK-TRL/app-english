@@ -9,7 +9,7 @@ class GeminiChatService(IChatService):
     Service wrapper for Gemini chat-based interactions with conversation history support.
     """
     
-    def __init__(self, api_key: str, model: str = 'gemini-2.0-flash') -> None:
+    def __init__(self, api_key: str, model: str = 'gemini-2.0-flash-lite') -> None:
         self.model = model
         self.client = genai.Client(api_key=api_key)
         
@@ -49,11 +49,18 @@ class GeminiChatService(IChatService):
         
         # Add previous chat history
         if history and history.messages:
-            contents = [self._get_content(message.role, message.text) for message in history.messages]
+            contents.extend([
+                self._get_content(message.role, message.text) for message in history.messages
+            ])
         
         # Add current prompt message
         contents.append(self._get_content('user', prompt))
                             
+
+        for i, msg in enumerate(contents):
+            preview = msg.parts[0].text.replace('\n', ' ')
+            print(f"Msg {i} [{msg.role}]: {preview}...")
+
         # Call Gemini API          
         return self.client.models.generate_content(
             model=self.model,
