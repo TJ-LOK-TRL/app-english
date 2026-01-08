@@ -49,4 +49,10 @@ interface ApiService {
     suspend fun generateLesson(
         @Field("context") context: String
     ): MeaningLessonResponse
+
+    @FormUrlEncoded
+    @POST("/api/speech/generate-video-content")
+    suspend fun generateVideoContent(
+        @Field("user_input") userInput: String
+    ): okhttp3.ResponseBody
 }

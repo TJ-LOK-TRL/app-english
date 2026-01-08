@@ -8,9 +8,9 @@ import java.util.concurrent.TimeUnit
 object RetrofitClient {
     private const val BASE_URL = "http://192.168.1.247:8080"
     private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)   // connection timeout
-        .readTimeout(60, TimeUnit.SECONDS)      // read timeout
-        .writeTimeout(60, TimeUnit.SECONDS)     // write timeout
+        .connectTimeout(5, TimeUnit.MINUTES)   // connection timeout
+        .readTimeout(5, TimeUnit.MINUTES)      // read timeout
+        .writeTimeout(5, TimeUnit.MINUTES)     // write timeout
         .build()
 
     val api: ApiService by lazy {

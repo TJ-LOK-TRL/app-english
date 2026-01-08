@@ -1,93 +1,159 @@
 package com.masterproject.englishapp.screens.lessons.videos
 
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.masterproject.englishapp.components.VerticalStepper
-import com.masterproject.englishapp.components.YouTubePlayer
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.masterproject.englishapp.R
+import com.masterproject.englishapp.components.VideoFloatingPlayer
+import com.masterproject.englishapp.components.buttons.AnimatedAiButton
+import com.masterproject.englishapp.components.loaders.OverlayLoader
+import com.masterproject.englishapp.screens.lessons.videos.components.AiInputDialog
+import com.masterproject.englishapp.screens.lessons.videos.components.TabHeaderItem
+import com.masterproject.englishapp.ui.theme.AppColors
+import java.io.File
 
-@Preview(showBackground = true)
+data class Lesson(val title: String, val description: String, val youtubeId: String)
+enum class VideoTab { YOUTUBE, GENERATED }
+
 @Composable
-fun VideoLessonsScreen() {
+fun VideoLessonsScreen(
+    viewModel: VideoGeneratorViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
 
-    val lessons = listOf(
-        Lesson("Basic Greetings", "How to say hello and goodbye", "YrJy_aymi6M"),         // Greetings & expressions for beginners (YouTube) :contentReference[oaicite:0]{index=0}
-        Lesson("Introducing Yourself", "Talk about your name and origin", "rNh3VYiNZL8"),    // English for Beginners #1: Introducing Yourself :contentReference[oaicite:1]{index=1}
-        Lesson("Daily Expressions", "Common phrases used every day", "r6nNDYqxEV4"),        // Greetings & Introductions / Self Introduction (YouTube) :contentReference[oaicite:2]{index=2}
-        Lesson("Most Used Verbs", "Essential English verbs", "QUjEaAZitRE"),                // 100 English communication sentences (verbs) :contentReference[oaicite:3]{index=3}
-        Lesson("Talking About Your Day", "Describe routines", "XQG5A_H5i7Q"),               // How to introduce yourself in English fast! (covers intro + practice) :contentReference[oaicite:4]{index=4}
-        Lesson("Asking Questions", "Simple questions in English", "yev4C9q88FQ"),           // Basic Easy English sentences (includes questions) :contentReference[oaicite:5]{index=5}
-        Lesson("Numbers and Time", "Dates and time expressions", "zqaDS3Rctys"),             // Learn core English verbs & basic concepts (includes numbers/time) :contentReference[oaicite:6]{index=6}
-        Lesson("Ordering Food", "English in restaurants", "MVX4KAZiW7A"),                   // Daily English Conversations: Ordering Food & Drinks :contentReference[oaicite:7]{index=7}
-        Lesson("Talking About Places", "Describing locations", "ki2m6Sr3UAU"),               // Ordering at a Restaurant dialogue (useful for places) :contentReference[oaicite:8]{index=8}
-        Lesson("Describing People", "Looks and personality", "44FB40olLoM"),                 // English Conversations at the Restaurant for beginners (dialogues include descriptions) :contentReference[oaicite:9]{index=9}
-        Lesson("Past and Future", "Basic verb tenses", "zqaDS3Rctys"),                      // Core basic English verbs (context for tenses) :contentReference[oaicite:10]{index=10}
-        Lesson("Simple Conversations", "Putting it all together", "MVX4KAZiW7A")            // Daily English ordering food (practice dialogues) :contentReference[oaicite:11]{index=11}
+    VideoLessonsScreenRouter(
+        showInputPrompt = viewModel.showInputPrompt,
+        isGenerating = viewModel.isGenerating,
+        generatedVideoFile = viewModel.generatedVideoFile,
+        onShowPromptChange = { viewModel.showInputPrompt = it },
+        onCloseVideo = { viewModel.generatedVideoFile = null },
+        onGenerateVideo = { idea -> viewModel.generateVideo(context, idea) },
+        onVideoClick = { file -> viewModel.playVideo(file) }
+    )
+}
+
+@Composable
+fun VideoLessonsScreenRouter(
+    showInputPrompt: Boolean,
+    isGenerating: Boolean,
+    generatedVideoFile: File?,
+    onShowPromptChange: (Boolean) -> Unit,
+    onCloseVideo: () -> Unit,
+    onGenerateVideo: (String) -> Unit,
+    onVideoClick: (File) -> Unit
+) {
+    var selectedTab by remember { mutableStateOf(VideoTab.YOUTUBE) }
+
+    val indicatorOffset by animateFloatAsState(
+        targetValue = if (selectedTab == VideoTab.YOUTUBE) 0f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "indicator"
     )
 
-    LazyColumn {
-        itemsIndexed(lessons) { index, lesson ->
-            LessonCard(
-                lesson = lesson,
-                index = index + 1
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                val tabWidth = maxWidth / 2
+
+                Column {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        TabHeaderItem(
+                            title = "YouTube",
+                            isSelected = selectedTab == VideoTab.YOUTUBE,
+                            modifier = Modifier.weight(1f),
+                            onClick = { selectedTab = VideoTab.YOUTUBE }
+                        )
+                        TabHeaderItem(
+                            title = "Meus Vídeos",
+                            isSelected = selectedTab == VideoTab.GENERATED,
+                            modifier = Modifier.weight(1f),
+                            onClick = { selectedTab = VideoTab.GENERATED }
+                        )
+                    }
+
+                    // Animated Bar
+                    Box(
+                        modifier = Modifier
+                            .offset(x = tabWidth * indicatorOffset)
+                            .width(tabWidth)
+                            .height(3.dp)
+                            .padding(horizontal = 20.dp)
+                            .background(
+                                color = AppColors.Primary,
+                                shape = RoundedCornerShape(2.dp)
+                            )
+                    )
+                }
+            }
+
+            Box(modifier = Modifier.weight(1f)) {
+                when (selectedTab) {
+                    VideoTab.YOUTUBE -> {
+                        VideoLessonsScreenContent()
+                    }
+                    VideoTab.GENERATED -> {
+                        GeneratedVideosGalleryContent(
+                            onVideoClick = onVideoClick
+                        )
+                    }
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(24.dp)
+        ) {
+            AnimatedAiButton(R.drawable.ic_plus_1) {
+                onShowPromptChange(true)
+            }
+        }
+
+        if (showInputPrompt) {
+            AiInputDialog(
+                onDismiss = { onShowPromptChange(false) },
+                onGenerate = { idea -> onGenerateVideo(idea) }
+            )
+        }
+
+        if (isGenerating) {
+            OverlayLoader()
+        }
+
+        generatedVideoFile?.let { videoFile ->
+            VideoFloatingPlayer(
+                file = videoFile,
+                onClose = { onCloseVideo() }
             )
         }
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun LessonCard(
-    lesson: Lesson,
-    index: Int,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
-
-        VerticalStepper(index = index, circleSize = 22.dp, lineTopOffset = 24.dp)
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(4.dp)
-        ) {
-            Column {
-                YouTubePlayer(
-                    youtubeId = lesson.youtubeId,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                )
-
-                Text(
-                    text = lesson.title,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(12.dp)
-                )
-
-                Text(
-                    text = lesson.description,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                )
-            }
-        }
-    }
+fun VideoLessonsScreenPreview() {
+    VideoLessonsScreenRouter(
+        showInputPrompt = false,
+        isGenerating = false,
+        generatedVideoFile = null,
+        onShowPromptChange = {},
+        onCloseVideo = {},
+        onGenerateVideo = {},
+        onVideoClick = {}
+    )
 }
-
-data class Lesson(
-    val title: String,
-    val description: String,
-    val youtubeId: String
-)
