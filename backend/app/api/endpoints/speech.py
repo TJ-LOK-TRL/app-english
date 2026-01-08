@@ -2,7 +2,7 @@ import os
 import torch
 import traceback
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from core.enums.lang import Lang
 from services.tts.kokoro import KokoroTTSService, KokoroVoice
 from services.asr.whisper import WhisperASRService
@@ -10,6 +10,7 @@ from services.pronunciation.pronunciation_evaluator import PronunciationEvaluato
 from services.chat.gemini import GeminiChatService
 from services.tutor.interactive_chat_service import InteractiveChatService
 from services.tutor.contextual_lesson_service import ContextualLessonService
+from services.tutor.contextual_video_service import ContextualVideoService
 from utils.audio_utils import wav_to_base64
 from utils.api_utils import read_audio_file
 
@@ -25,6 +26,7 @@ pronunciation_evaluator = PronunciationEvaluator(tts_service)
 gemini_chat_service = GeminiChatService(os.getenv('GEMINI_API_KEY'))
 interactive_chat_service = InteractiveChatService(gemini_chat_service)
 lesson_service = ContextualLessonService(gemini_chat_service)
+video_service = ContextualVideoService(gemini_chat_service, tts_service, os.getenv('FREEPIK_API_KEY'))
 
 @router.post('/evaluate-pronunciation')
 async def pronunciation_check(audio: UploadFile = File(...), target_text: str = Form(...)):
@@ -182,3 +184,34 @@ async def generate_lesson(context: str = Form(...)):
         print('Error generating lesson:', str(e))
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post('/generate-video-content')
+async def generate_video_content(user_input: str = Form(...)):
+    """
+    Generates the video script and image search keyword.
+    16:9 output format is implicit in the short phrases.
+    """
+    try:
+        print(f'Generating video content for: {user_input}')
+        
+        # Calls the AI chat service to generate video content
+        video_content = video_service.generate_video_content(user_input)
+        print(f'Video content:', video_content)
+        
+        # Create the video using tts, freepik and moviepy
+        video_path = video_service.create_video_from_input(video_content)
+        print(f'Video saved at:', video_path)
+        
+        if not os.path.exists(video_path):
+            raise HTTPException(status_code=500, detail='Video file was not generated.')
+        
+        return FileResponse(
+            path=video_path, 
+            filename="generated_video.mp4", 
+            media_type="video/mp4"
+        )
+    except Exception as e:
+        print('Error generating video content:', str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+    

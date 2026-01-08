@@ -12,3 +12,7 @@ class LessonItem(BaseModel):
 class LessonResponseStruct(BaseModel):
     context_title: str
     items: List[LessonItem]
+    
+class VideoResponseStruct(BaseModel):
+    image_prompt: str
+    phrases: List[str]
