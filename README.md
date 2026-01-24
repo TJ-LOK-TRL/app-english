@@ -106,23 +106,33 @@ The backend runs inside a Docker container that includes Kaldi and the Kaldi-GOP
 #### Using the provided container image
 
 1. Run the container:
-    docker run -it --name app_english_backend --gpus all -v ${PWD}/backend/app:/usr/src/app -p 8080:8080 backend-base /bin/bash
+   
+    `docker run -it --name app_english_backend --gpus all -v ${PWD}/backend/app:/usr/src/app -p 8080:8080 backend-base /bin/bash`
 
-2. Start and enter the container:
+3. Start and enter the container:
+   
+    ```
     docker start -ai app_english_backend
     docker exec -it app_english_backend /bin/bash
+    ```
 
-4. Navigate to the backend folder:
+5. Navigate to the backend folder:
 
+    ```
     cd /usr/src/app
+    ```
 
-5. Install all dependencies:
+7. Install all dependencies:
 
+    ```
     python3 -m pip install -r requirements.txt
+    ```
 
-6. Run the backend server:
+9. Run the backend server:
 
+    ```
     uvicorn app:app --host 0.0.0.0 --port 8080 --reload
+    ```
 
 > The backend will now listen on your local network. Make sure to note the IP address.
 
